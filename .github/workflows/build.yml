@@ -21,7 +21,6 @@ concurrency:
 permissions:
   contents: read
   packages: write
-  id-token: write
 
 jobs:
   build:
@@ -48,6 +47,7 @@ jobs:
           recipe: recipe.yml
           registry_token: ${{ secrets.GITHUB_TOKEN }}
           pr_event_number: ${{ github.event.number }}
+          cosign_private_key: ""
 
       - name: Smoke test
         run: |
