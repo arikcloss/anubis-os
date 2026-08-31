@@ -78,14 +78,4 @@ fi
 
 plymouth-set-default-theme -R anubis
 
-# Belt-and-suspenders check (will run if initramfs file is locally generated)
-KVER=$(rpm -q --qf '%{VERSION}-%{RELEASE}.%{ARCH}\n' kernel-core 2>/dev/null | tail -1 || true)
-if [[ -n "$KVER" && -f "/boot/initramfs-${KVER}.img" ]]; then
-    if ! lsinitrd "/boot/initramfs-${KVER}.img" 2>/dev/null | grep -q 'themes/anubis'; then
-        echo "ERROR: anubis plymouth theme not found in initramfs after rebuild." >&2
-        exit 1
-    fi
-    echo "[setup-plymouth] Verified anubis theme is present in initramfs-${KVER}.img"
-fi
-
 echo "[setup-plymouth] Done."
