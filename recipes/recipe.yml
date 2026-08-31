@@ -33,7 +33,6 @@ modules:
       - gstreamer1-plugins-ugly-free
       - gstreamer1-plugins-bad-free-extras
       - gstreamer1-vaapi
-      - intel-media-driver
       - pipewire
       - pipewire-alsa
       - pipewire-pulseaudio
