@@ -24,6 +24,8 @@ modules:
   - type: rpm-ostree
     install:
       - ffmpeg
+      - firefox
+      - blackbox-terminal
       - ffmpeg-libs
       - gstreamer1-plugins-base
       - gstreamer1-plugins-good
