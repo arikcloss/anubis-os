@@ -1,7 +1,7 @@
 # recipes/recipe.yml
 # anubis-os — minimal/DIY GNOME-core desktop, gaming + everyday user security
 # (NOT pentesting), broad x86_64 hardware support (1st-gen Intel Core through
-# current, all AMD64). No custom kernel — stock Fedora kernel + tuned/sysctl
+# current, all AMD64). No custom kernel — stock Fedora 44 kernel + tuned/sysctl
 # optimizations only. No Flatpaks — rpm-only, gnome-core app set.
 
 name: anubis-os
@@ -12,17 +12,31 @@ image-version: "44"
 modules:
 
   # ---------------------------------------------------------------------
-  # 1. Repositories Cleanup & Base Codecs
+  # 1. Repositories cleanup & base codecs
   #    Remove o repositório multimedia antigo da negativo17 que causa 404
-  #    e instala o ffmpeg completo para suporte a codecs de mídia.
+  #    e instala o ffmpeg completo + stack gstreamer/pipewire para codecs.
   # ---------------------------------------------------------------------
   - type: script
     snippets:
-      - grep -rl 'negativo17.org' /etc/yum.repos.d/ | xargs rm -f
+      # Versão segura: find -delete não quebra se grep não achar nada.
+      - find /etc/yum.repos.d/ -type f -name '*.repo' -exec grep -l 'negativo17.org' {} \; -delete 2>/dev/null || true
 
   - type: rpm-ostree
     install:
       - ffmpeg
+      - ffmpeg-libs
+      - gstreamer1-plugins-base
+      - gstreamer1-plugins-good
+      - gstreamer1-plugins-bad-free
+      - gstreamer1-plugins-ugly-free
+      - gstreamer1-plugins-bad-free-extras
+      - gstreamer1-vaapi
+      - intel-media-driver
+      - pipewire
+      - pipewire-alsa
+      - pipewire-pulseaudio
+      - pipewire-jack-audio-connection-kit
+      - wireplumber
 
   # ---------------------------------------------------------------------
   # 2. Performance optimizations WITHOUT a custom kernel.
@@ -38,6 +52,10 @@ modules:
       - scx-scheds
       - gamemode
       - mangohud
+      - vulkan-loader
+      - mesa-vulkan-drivers
+      - libva
+      - libva-utils
 
   - type: script
     snippets:
@@ -52,9 +70,12 @@ modules:
       - fwupd
       - NetworkManager
       - bluez
+      - bluez-cups
       - plymouth
       - plymouth-plugin-script
       - dracut-tools
+      - iwd
+      - power-profiles-daemon
 
   # ---------------------------------------------------------------------
   # 4. Gaming support (rpm-only, NO LUTRIS, NO STEAM inside base)
@@ -62,6 +83,9 @@ modules:
   - type: rpm-ostree
     install:
       - gamescope
+      - libdrm
+      - libgudev
+      - SDL2
 
   # ---------------------------------------------------------------------
   # 5. DIY / minimal GNOME-core application set.
@@ -71,6 +95,8 @@ modules:
       - gedit
       - ptyxis
       - firefox
+      - gnome-tweaks
+      - gnome-extensions-app
 
   - type: script
     snippets:
@@ -99,15 +125,18 @@ modules:
       - rkhunter
       - aide
       - firejail
+
   # ---------------------------------------------------------------------
   # 8. GNOME desktop extensions
+  #    Logo Menu substitui o botão "Atividades" por um logo customizável
+  #    (UUID: logomenu@aryan_k) — é isso que você pediu.
   # ---------------------------------------------------------------------
   - type: gnome-extensions
     install:
       - Dash to Dock
       - AppIndicator and KStatusNotifierItem Support
       - Blur my Shell
-      - Arc Menu
+      - Logo Menu
       - Caffeine
       - PaperWM
 
