@@ -1,0 +1,147 @@
+# recipes/recipe.yml
+# anubis-os — GNOME desktop, gaming + everyday user security (NOT pentesting),
+# broad x86_64 hardware support (1st-gen Intel Core through current, all AMD64).
+
+name: anubis-os
+description: GNOME-based gaming & security-focused immutable Fedora (Universal Blue)
+base-image: ghcr.io/ublue-os/silverblue-main   # GNOME ostree base
+image-version: "44"
+
+modules:
+
+  # ---------------------------------------------------------------------
+  # 1. Freeworld codecs & drivers
+  #    RPM Fusion is already enabled in the ublue-os/silverblue-main base
+  #    image. However the base image also ships a `fedora-multimedia` repo
+  #    from negativo17.org which 404s on Fedora 42 and causes every dnf
+  #    operation to fail. Disable it first, then install from RPM Fusion.
+  # ---------------------------------------------------------------------
+  - type: script
+    snippets:
+      # The base image ships a negativo17 fedora-multimedia repo that 404s
+      # on Fedora 42. Remove it, then install the RPM Fusion release RPMs
+      # directly by URL so their repos are available for all later steps.
+      - echo 'cache-bust-2'
+      - grep -rl 'negativo17.org' /etc/yum.repos.d/ | xargs rm -f
+      - VER=$(rpm -E %fedora) && rpm-ostree install --idempotent https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-${VER}.noarch.rpm https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-${VER}.noarch.rpm
+
+  - type: rpm-ostree
+    install:
+      - ffmpeg
+
+  # ---------------------------------------------------------------------
+  # 2. CachyOS kernel — generic build by default for broad compatibility
+  #    (1st-gen Intel Core through current Intel/AMD). CPU-tuned variants
+  #    stay opt-in via ujust, never default, so old hardware always boots.
+  #    %OS_VERSION% is substituted by blue-build at build time.
+  # ---------------------------------------------------------------------
+  - type: rpm-ostree
+    repos:
+      - https://copr.fedorainfracloud.org/coprs/bieszczaders/kernel-cachyos/repo/fedora-%OS_VERSION%/bieszczaders-kernel-cachyos-fedora-%OS_VERSION%.repo
+      - https://copr.fedorainfracloud.org/coprs/bieszczaders/kernel-cachyos-addons/repo/fedora-%OS_VERSION%/bieszczaders-kernel-cachyos-addons-fedora-%OS_VERSION%.repo
+    install:
+      - kernel-cachyos
+      - kernel-cachyos-devel
+      - scx-scheds
+
+  # ---------------------------------------------------------------------
+  # 3. Automatic hardware enablement
+  #    Broadcom Wi-Fi: we use RPM Fusion's akmod-wl, which builds locally
+  #    for whatever kernel is running via the akmods systemd service.
+  #    BlueBuild's `akmods` module type only covers its own prebuilt
+  #    catalog (main/bazzite/asus/surface kernels) and does NOT support
+  #    kernel-cachyos, so we install akmod-wl as a plain RPM instead.
+  #    fwupd handles firmware updates automatically.
+  # ---------------------------------------------------------------------
+  - type: rpm-ostree
+    install:
+      - akmod-wl
+      - fwupd                 # automatic firmware updates (BIOS/EC/peripheral)
+      - NetworkManager        # already in base, kept explicit for clarity
+      - bluez                 # Bluetooth auto-detect/pairing
+
+  # ---------------------------------------------------------------------
+  # 4. SteamOS-style gaming
+  # ---------------------------------------------------------------------
+  - type: rpm-ostree
+    install:
+      - steam
+      - gamescope
+      - gamemode
+      - mangohud
+      - lutris
+      - wine
+      - winetricks
+      - vkbasalt
+      - corectrl
+
+  - type: default-flatpaks
+    notify: true
+    system:
+      install:
+        - net.davidotek.pupgui2          # ProtonUp-Qt
+        - com.heroicgameslauncher.hgl
+        # --- Creative tools ---
+        - org.gimp.GIMP
+        - org.inkscape.Inkscape
+        - com.github.PintaProject.Pinta
+        # --- Office ---
+        - org.onlyoffice.desktopeditors
+        # --- Browser (default) ---
+        - com.brave.Browser
+
+  # ---------------------------------------------------------------------
+  # 5. Everyday user security (NOT pentesting tools — defensive/privacy
+  #    tools only, suitable for a general-purpose gaming desktop).
+  # ---------------------------------------------------------------------
+  - type: rpm-ostree
+    install:
+      - firewalld
+      - clamav
+      - clamav-update
+      - rkhunter
+      - aide
+      - firejail
+      - opensnitch
+
+  # ---------------------------------------------------------------------
+  # 6. GNOME desktop extensions — dash-to-dock, AppIndicator/legacy tray,
+  #    Blur My Shell, a logo/app menu (Arc Menu), Caffeine, PaperWM.
+  # ---------------------------------------------------------------------
+  - type: gnome-extensions
+    install:
+      - Dash to Dock
+      - AppIndicator and KStatusNotifierItem Support
+      - Blur my Shell
+      - Arc Menu
+      - Caffeine
+      - PaperWM
+    # NOTE: this module only installs the extension files — it does not
+    # enable them. Enabling is done via a dconf default override shipped
+    # by the `files` module below (see
+    # files/system/etc/dconf/db/local.d/00-anubis-extensions and the
+    # matching dconf-update script).
+
+  # ---------------------------------------------------------------------
+  # 7. Homebrew (brew-oci layer)
+  # ---------------------------------------------------------------------
+  - type: brew
+
+  # ---------------------------------------------------------------------
+  # 8. Wallpapers, dconf defaults, ujust files, first-boot wallpaper unit
+  # ---------------------------------------------------------------------
+  - type: files
+    files:
+      - source: system
+        destination: /
+
+  - type: script
+    scripts:
+      - set-permissions.sh
+      - enable-first-boot-units.sh
+      - enable-gnome-extensions-defaults.sh
+
+  # ---------------------------------------------------------------------
+  # 9. Signing
+  # ---------------------------------------------------------------------
+  - type: signing

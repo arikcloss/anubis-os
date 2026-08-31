@@ -1,0 +1,139 @@
+# recipes/recipe.yml
+# anubis-os — minimal/DIY GNOME-core desktop, gaming + everyday user security
+# (NOT pentesting), broad x86_64 hardware support (1st-gen Intel Core through
+# current, all AMD64). No custom kernel — stock Fedora kernel + tuned/sysctl
+# optimizations only. No Flatpaks — rpm-only, gnome-core app set.
+
+name: anubis-os
+description: GNOME-core-based DIY gaming & security-focused immutable Fedora (Universal Blue)
+base-image: ghcr.io/ublue-os/silverblue-main   # GNOME ostree base
+image-version: "44"
+
+modules:
+
+  # ---------------------------------------------------------------------
+  # 1. Repositories Cleanup & Base Codecs
+  #    Remove o repositório multimedia antigo da negativo17 que causa 404
+  #    e instala o ffmpeg completo para suporte a codecs de mídia.
+  # ---------------------------------------------------------------------
+  - type: script
+    snippets:
+      - grep -rl 'negativo17.org' /etc/yum.repos.d/ | xargs rm -f
+
+  - type: rpm-ostree
+    install:
+      - ffmpeg
+
+  # ---------------------------------------------------------------------
+  # 2. Performance optimizations WITHOUT a custom kernel.
+  #    Usa o COPR bieszczaders para buscar o scx-scheds de forma nativa.
+  # ---------------------------------------------------------------------
+  - type: rpm-ostree
+    repos:
+      - https://copr.fedorainfracloud.org/coprs/bieszczaders/kernel-cachyos-addons/repo/fedora-%OS_VERSION%/bieszczaders-kernel-cachyos-addons-fedora-%OS_VERSION%.repo
+    install:
+      - tuned
+      - tuned-ppd
+      - irqbalance
+      - scx-scheds
+      - gamemode
+      - mangohud
+
+  - type: script
+    snippets:
+      - systemctl enable tuned.service
+      - systemctl enable irqbalance.service
+
+  # ---------------------------------------------------------------------
+  # 3. Automatic hardware enablement
+  # ---------------------------------------------------------------------
+  - type: rpm-ostree
+    install:
+      - fwupd
+      - NetworkManager
+      - bluez
+      - plymouth
+      - plymouth-plugin-script
+      - dracut-tools
+
+  # ---------------------------------------------------------------------
+  # 4. Gaming support (rpm-only, NO LUTRIS, NO STEAM inside base)
+  # ---------------------------------------------------------------------
+  - type: rpm-ostree
+    install:
+      - gamescope
+
+  # ---------------------------------------------------------------------
+  # 5. DIY / minimal GNOME-core application set.
+  # ---------------------------------------------------------------------
+  - type: rpm-ostree
+    install:
+      - gedit
+      - ptyxis
+      - firefox
+
+  - type: script
+    snippets:
+      - flatpak uninstall -y --noninteractive app/org.gnome.Ptyxis/x86_64/stable || true
+
+  # ---------------------------------------------------------------------
+  # 6. Flathub remote — kept enabled "just in case" but with nothing
+  #    pre-installed.
+  # ---------------------------------------------------------------------
+  - type: default-flatpaks
+    configurations:
+      - scope: system
+        notify: true
+        repo:
+          url: https://dl.flathub.org/repo/flathub.flatpakrepo
+        install: []
+
+  # ---------------------------------------------------------------------
+  # 7. Everyday user security
+  # ---------------------------------------------------------------------
+  - type: rpm-ostree
+    install:
+      - firewalld
+      - clamav
+      - clamav-update
+      - rkhunter
+      - aide
+      - firejail
+  # ---------------------------------------------------------------------
+  # 8. GNOME desktop extensions
+  # ---------------------------------------------------------------------
+  - type: gnome-extensions
+    install:
+      - Dash to Dock
+      - AppIndicator and KStatusNotifierItem Support
+      - Blur my Shell
+      - Arc Menu
+      - Caffeine
+      - PaperWM
+
+  # ---------------------------------------------------------------------
+  # 9. Homebrew (brew-oci layer)
+  # ---------------------------------------------------------------------
+  - type: brew
+
+  # ---------------------------------------------------------------------
+  # 10. Wallpapers, dconf defaults, ujust files, script setups
+  # ---------------------------------------------------------------------
+  - type: files
+    files:
+      - source: system
+        destination: /
+
+  - type: script
+    scripts:
+      - set-permissions.sh
+      - enable-first-boot-units.sh
+      - enable-gnome-extensions-defaults.sh
+      - setup-logo.sh
+      - setup-plymouth.sh
+      - setup-wallpaper.sh
+
+  # ---------------------------------------------------------------------
+  # 11. Signing
+  # ---------------------------------------------------------------------
+  - type: signing

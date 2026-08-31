@@ -1,0 +1,33 @@
+name: Build anubis-os images
+on:
+  push:
+    branches: [main]
+    paths:
+      - "recipes/**"
+      - "files/**"
+      - "modules/**"
+      - ".github/workflows/build.yml"
+  schedule:
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build (anubis-os)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build image
+        uses: blue-build/github-action@v1
+        with:
+          recipe: recipe.yml
+          cosign_private_key: ""
+          registry_token: ${{ secrets.GITHUB_TOKEN }}
+          pr_event_number: ${{ github.event.number }}
+          build_opts: "--no-sign"

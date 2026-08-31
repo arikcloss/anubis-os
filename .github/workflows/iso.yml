@@ -1,0 +1,53 @@
+name: Build anubis-os ISOs
+on:
+  workflow_dispatch:
+    inputs:
+      image:
+        description: "Qual imagem gerar ISO"
+        required: true
+        default: "anubis-os"
+        type: choice
+        options:
+          - anubis-os
+
+jobs:
+  iso-anubis-os:
+    name: ISO (anubis-os)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install BlueBuild CLI
+        run: |
+          sudo docker create --name blue-build-installer ghcr.io/blue-build/cli:v0.9-installer
+          sudo docker cp blue-build-installer:/out/bluebuild /usr/bin/bluebuild
+          sudo docker rm blue-build-installer
+          bluebuild --version
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Generate ISO
+        run: |
+          IMAGE="ghcr.io/${{ github.repository_owner }}/anubis-os:latest"
+          mkdir -p iso-out
+          sudo bluebuild generate-iso \
+            --output-dir iso-out \
+            --iso-name anubis-os.iso \
+            image "$IMAGE"
+
+      - name: Upload ISO artifact (7 dias)
+        uses: actions/upload-artifact@v4
+        with:
+          name: iso-anubis-os
+          path: iso-out/*.iso
+          retention-days: 7
+          if-no-files-found: error

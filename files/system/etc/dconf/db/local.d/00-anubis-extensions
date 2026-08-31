@@ -1,0 +1,3 @@
+[org/gnome/shell]
+enabled-extensions=['dash-to-dock@micxgx.gmail.com', 'appindicatorsupport@rgcjonas.gmail.com', 'blur-my-shell@aunetx', 'arcmenu@arcmenu.com', 'caffeine@patapon.info', 'paperwm@hedning:matrix.org']
+disable-user-extensions=false

@@ -1,0 +1,120 @@
+// Anubis Linux fastfetch configuration
+// Custom ASCII branding + a privacy-conscious module list.
+//
+// Privacy notes (intentional choices, do not "complete" this list by adding
+// the commented-out modules back in):
+//   - No "localip"   -> does not print LAN/VPN IP addresses.
+//   - No "publicip"  -> does not make an outbound network request to an
+//                       IP-lookup service just to render a fetch banner.
+//   - No "weather"   -> same reason: avoids a silent outbound request and
+//                       avoids leaking the user's approximate location.
+//   - No "bluetooth"/"wifi" device modules -> avoid printing hardware MAC
+//                       addresses, which are stable cross-session identifiers.
+//   - "title" uses a generic label instead of "{user-name}@{host-name}" so
+//                       screenshots/recordings shared online don't casually
+//                       leak your real Linux username or machine hostname.
+{
+  "$schema": "https://github.com/fastfetch-cli/fastfetch/raw/dev/doc/json_schema.json",
+
+  "logo": {
+    "type": "file",
+    "source": "/usr/share/fastfetch/anubis-ascii.txt",
+    "width": 67,
+    "height": 33,
+    "padding": {
+      "top": 1,
+      "right": 4
+    },
+    "color": {
+      "1": "yellow"
+    }
+  },
+
+  "display": {
+    "separator": " ➜ ",
+    "color": {
+      "keys": "magenta",
+      "title": "yellow"
+    },
+    "key": {
+      "width": 14
+    },
+    "size": {
+      "binaryPrefix": "si"
+    }
+  },
+
+  "modules": [
+    {
+      "type": "custom",
+      "format": "┌──────────────────────────────────┐"
+    },
+    {
+      "type": "title",
+      "key": " 󰣇 ",
+      "format": "Anubis Linux session"
+    },
+    {
+      "type": "custom",
+      "format": "└──────────────────────────────────┘"
+    },
+    {
+      "type": "os",
+      "key": " 󰣛 OS"
+    },
+    {
+      "type": "kernel",
+      "key": " 󰒋 Kernel"
+    },
+    {
+      "type": "uptime",
+      "key": " 󰅐 Uptime"
+    },
+    {
+      "type": "packages",
+      "key": " 󰏗 Packages"
+    },
+    {
+      "type": "de",
+      "key": " 󰧨 Desktop"
+    },
+    {
+      "type": "wm",
+      "key": " 󱂬 WM"
+    },
+    {
+      "type": "shell",
+      "key": " 󰆍 Shell"
+    },
+    {
+      "type": "terminal",
+      "key": "  Terminal"
+    },
+    "break",
+    {
+      "type": "cpu",
+      "key": "  CPU"
+    },
+    {
+      "type": "gpu",
+      "key": " 󰢮 GPU"
+    },
+    {
+      "type": "memory",
+      "key": " 󰍛 Memory"
+    },
+    {
+      "type": "disk",
+      "key": " 󰋊 Disk",
+      "folders": "/"
+    },
+    "break",
+    {
+      "type": "colors",
+      "symbol": "circle"
+    }
+
+    // Deliberately omitted for privacy — see header note:
+    // "localip", "publicip", "weather", "bluetooth", "wifi"
+  ]
+}

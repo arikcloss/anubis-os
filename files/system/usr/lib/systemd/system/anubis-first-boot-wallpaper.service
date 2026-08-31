@@ -1,0 +1,12 @@
+[Unit]
+Description=anubis-os: pick a random default wallpaper on first boot
+ConditionPathExists=!/var/lib/anubis-os/.wallpaper-set
+After=multi-user.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/share/anubis-os/scripts/anubis-pick-wallpaper.sh
+RemainAfterExit=true
+
+[Install]
+WantedBy=multi-user.target

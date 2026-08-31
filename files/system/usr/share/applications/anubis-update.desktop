@@ -1,0 +1,20 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Update System
+Comment=Update all packages, Flatpaks, and Brew with topgrade
+Icon=anubis-update
+# Opens Ptyxis (the default terminal in the image) and runs topgrade.
+# Falls back to gnome-terminal, then xterm if Ptyxis isn't available.
+Exec=/bin/bash -c '\
+    if command -v ptyxis &>/dev/null; then \
+        ptyxis -- bash -c "topgrade; echo; echo Done — press Enter to close; read"; \
+    elif command -v gnome-terminal &>/dev/null; then \
+        gnome-terminal -- bash -c "topgrade; echo; echo Done — press Enter to close; read"; \
+    else \
+        xterm -e bash -c "topgrade; echo; echo Done — press Enter to close; read"; \
+    fi'
+Terminal=false
+Categories=System;PackageManager;
+Keywords=update;upgrade;topgrade;system;packages;flatpak;
+StartupNotify=true

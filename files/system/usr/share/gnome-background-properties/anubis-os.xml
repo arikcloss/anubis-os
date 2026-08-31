@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE wallpapers SYSTEM "gnome-wp-list.dtd">
+<wallpapers>
+
+  <wallpaper deleted="false">
+    <name>Anubis — Fire Forest</name>
+    <filename>/usr/share/backgrounds/anubis-os/anubis-01-fire-forest.jpg</filename>
+    <filename-dark>/usr/share/backgrounds/anubis-os/anubis-01-fire-forest.jpg</filename-dark>
+    <options>zoom</options>
+    <shade_type>solid</shade_type>
+    <pcolor>#000000</pcolor>
+    <scolor>#000000</scolor>
+  </wallpaper>
+
+  <wallpaper deleted="false">
+    <name>Anubis — Firewatch Tower</name>
+    <filename>/usr/share/backgrounds/anubis-os/anubis-02-firewatch-tower.jpg</filename>
+    <filename-dark>/usr/share/backgrounds/anubis-os/anubis-02-firewatch-tower.jpg</filename-dark>
+    <options>zoom</options>
+    <shade_type>solid</shade_type>
+    <pcolor>#000000</pcolor>
+    <scolor>#000000</scolor>
+  </wallpaper>
+
+  <wallpaper deleted="false">
+    <name>Anubis — Firewatch Trail</name>
+    <filename>/usr/share/backgrounds/anubis-os/anubis-03-firewatch-wallpaper.jpeg</filename>
+    <filename-dark>/usr/share/backgrounds/anubis-os/anubis-03-firewatch-wallpaper.jpeg</filename-dark>
+    <options>zoom</options>
+    <shade_type>solid</shade_type>
+    <pcolor>#000000</pcolor>
+    <scolor>#000000</scolor>
+  </wallpaper>
+
+  <wallpaper deleted="false">
+    <name>Anubis — Jonesy Lake</name>
+    <filename>/usr/share/backgrounds/anubis-os/anubis-04-jonesy-lake.png</filename>
+    <filename-dark>/usr/share/backgrounds/anubis-os/anubis-04-jonesy-lake.png</filename-dark>
+    <options>zoom</options>
+    <shade_type>solid</shade_type>
+    <pcolor>#000000</pcolor>
+    <scolor>#000000</scolor>
+  </wallpaper>
+
+  <wallpaper deleted="false">
+    <name>Anubis — Ol' Shoshone</name>
+    <filename>/usr/share/backgrounds/anubis-os/anubis-05-ol-shoshone.jpg</filename>
+    <filename-dark>/usr/share/backgrounds/anubis-os/anubis-05-ol-shoshone.jpg</filename-dark>
+    <options>zoom</options>
+    <shade_type>solid</shade_type>
+    <pcolor>#000000</pcolor>
+    <scolor>#000000</scolor>
+  </wallpaper>
+
+  <wallpaper deleted="false">
+    <name>Anubis — Tower of Firewatch</name>
+    <filename>/usr/share/backgrounds/anubis-os/anubis-06-tower-of-firewatch.jpeg</filename>
+    <filename-dark>/usr/share/backgrounds/anubis-os/anubis-06-tower-of-firewatch.jpeg</filename-dark>
+    <options>zoom</options>
+    <shade_type>solid</shade_type>
+    <pcolor>#000000</pcolor>
+    <scolor>#000000</scolor>
+  </wallpaper>
+
+  <wallpaper deleted="false">
+    <name>Anubis OS — Default</name>
+    <filename>/usr/share/backgrounds/anubis-os/anubis-wallpaper.png</filename>
+    <filename-dark>/usr/share/backgrounds/anubis-os/anubis-wallpaper.png</filename-dark>
+    <options>zoom</options>
+    <shade_type>solid</shade_type>
+    <pcolor>#1a1625</pcolor>
+    <scolor>#1a1625</scolor>
+  </wallpaper>
+
+</wallpapers>

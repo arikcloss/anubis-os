@@ -1,0 +1,21 @@
+[Unit]
+Description=anubis-os: set up Oh My Bash and Starship for the first real user
+# Run after network is available (needed for git clone and curl)
+After=network-online.target
+Wants=network-online.target
+# Only run once
+ConditionPathExists=!/var/lib/anubis-os/.user-setup-done
+
+[Service]
+Type=oneshot
+# Detect the first non-root human user (UID >= 1000)
+ExecStart=/bin/bash -c '\
+    USER_NAME=$(getent passwd | awk -F: '\''$3 >= 1000 && $3 < 65534 {print $1; exit}'\''); \
+    [[ -z "$USER_NAME" ]] && exit 0; \
+    su - "$USER_NAME" -c /usr/share/anubis-os/scripts/setup-ohmybash-user.sh && \
+    mkdir -p /var/lib/anubis-os && \
+    touch /var/lib/anubis-os/.user-setup-done'
+RemainAfterExit=true
+
+[Install]
+WantedBy=multi-user.target

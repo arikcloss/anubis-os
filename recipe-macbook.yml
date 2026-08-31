@@ -1,0 +1,133 @@
+# recipes/recipe-macbook.yml
+# anubis-os, older Intel MacBook Air hardware-enablement variant.
+#
+# Scope: MacBook Air 2013 / 2015 / 2017 — all pre-T2 chip, so this is
+# much simpler than later T2 models: Broadcom Wi-Fi + the FaceTime HD
+# webcam driver cover essentially everything that doesn't "just work"
+# out of the box on these machines.
+#
+# Apple Silicon MacBook Airs (M1/M2/M3) are out of scope — see README.
+
+name: anubis-os-macbook
+description: anubis-os tuned for 2013/2015/2017 Intel MacBook Air (Broadcom + FaceTime HD)
+base-image: ghcr.io/ublue-os/silverblue-main
+image-version: "44"
+
+modules:
+
+  # ---------------------------------------------------------------------
+  # 1. Freeworld codecs & drivers
+  #    RPM Fusion is already enabled in the ublue-os/silverblue-main base
+  #    image. However the base image also ships a `fedora-multimedia` repo
+  #    from negativo17.org which 404s on Fedora 42 and causes every dnf
+  #    operation to fail. Disable it first, then install from RPM Fusion.
+  # ---------------------------------------------------------------------
+  - type: script
+    snippets:
+      # The base image ships a negativo17 fedora-multimedia repo that 404s
+      # on Fedora 42. Remove it, then install the RPM Fusion release RPMs
+      # directly by URL so their repos are available for all later steps.
+      - echo 'cache-bust-2'
+      - grep -rl 'negativo17.org' /etc/yum.repos.d/ | xargs rm -f
+      - VER=$(rpm -E %fedora) && rpm-ostree install --idempotent https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-${VER}.noarch.rpm https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-${VER}.noarch.rpm
+
+  - type: rpm-ostree
+    install:
+      - ffmpeg
+
+  # ---------------------------------------------------------------------
+  # 2. CachyOS kernel — generic build only; these machines are old enough
+  #    that the generic baseline is the only sane default.
+  #    %OS_VERSION% is substituted by blue-build at build time.
+  # ---------------------------------------------------------------------
+  - type: rpm-ostree
+    repos:
+      - https://copr.fedorainfracloud.org/coprs/bieszczaders/kernel-cachyos/repo/fedora-%OS_VERSION%/bieszczaders-kernel-cachyos-fedora-%OS_VERSION%.repo
+    install:
+      - kernel-cachyos
+
+  # ---------------------------------------------------------------------
+  # 3. Broadcom Wi-Fi (every MacBook Air in this range uses Broadcom)
+  #    akmod-wl builds the module at first boot against whatever kernel is
+  #    running; kmod-wl and broadcom-wl are the resulting built module and
+  #    firmware packages. Installing all three ensures Wi-Fi works both
+  #    immediately (kmod-wl) and after future kernel updates (akmod-wl rebuilds).
+  #    RPM Fusion is already enabled in the base image.
+  # ---------------------------------------------------------------------
+  - type: rpm-ostree
+    install:
+      - akmod-wl
+      - kmod-wl
+      - broadcom-wl
+
+  # ---------------------------------------------------------------------
+  # 4. FaceTime HD webcam (out-of-tree driver, all Air models in range)
+  # ---------------------------------------------------------------------
+  - type: akmods
+    repos:
+      - https://copr.fedorainfracloud.org/coprs/dani/facetimehd/repo/fedora-%OS_VERSION%/dani-facetimehd-fedora-%OS_VERSION%.repo
+    install:
+      - facetimehd
+
+  - type: rpm-ostree
+    install:
+      - fwupd
+      - bluez
+
+  # ---------------------------------------------------------------------
+  # 5. Gaming
+  # ---------------------------------------------------------------------
+  - type: rpm-ostree
+    install:
+      - steam
+      - gamescope
+      - gamemode
+      - mangohud
+      - lutris
+      - wine
+      - firewalld
+      - clamav
+      - rkhunter
+      - aide
+      - firejail
+      - opensnitch
+
+  - type: default-flatpaks
+    notify: true
+    system:
+      install:
+        - org.gimp.GIMP
+        - org.inkscape.Inkscape
+        - com.github.PintaProject.Pinta
+        - org.onlyoffice.desktopeditors
+        - com.brave.Browser
+
+  - type: gnome-extensions
+    install:
+      - Dash to Dock
+      - AppIndicator and KStatusNotifierItem Support
+      - Blur my Shell
+      - Arc Menu
+      - Caffeine
+      - PaperWM
+
+  - type: brew
+
+  - type: files
+    files:
+      - source: system
+        destination: /
+
+  - type: script
+    scripts:
+      - set-permissions.sh
+      - enable-first-boot-units.sh
+      - enable-gnome-extensions-defaults.sh
+
+  - type: signing
+
+# Note: low-power/battery tuning (TLP, power-profiles-daemon) is worth
+# adding explicitly for 2013-era hardware where battery life matters more
+# than on current machines — consider a `power-profiles-daemon` + `tlp`
+# module addition once the base image boots and is verified on real
+# hardware, rather than guessing settings blind here.

@@ -1,0 +1,12 @@
+[Unit]
+Description=Anubis Linux: seed fastfetch config for existing users on first boot
+ConditionFirstBoot=yes
+After=local-fs.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/lib/anubis-os/first-boot/install-fastfetch-config.sh
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
