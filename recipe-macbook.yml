@@ -1,133 +1,231 @@
-# recipes/recipe-macbook.yml
-# anubis-os, older Intel MacBook Air hardware-enablement variant.
+# =============================================================================
+# anubis-os-macbook — recipe-macbook.yml
+# =============================================================================
+# Variant of anubis-os for Intel MacBook Air / Pro 2013–2017 (pre-T2 chip).
 #
-# Scope: MacBook Air 2013 / 2015 / 2017 — all pre-T2 chip, so this is
-# much simpler than later T2 models: Broadcom Wi-Fi + the FaceTime HD
-# webcam driver cover essentially everything that doesn't "just work"
-# out of the box on these machines.
+# What's different from the main recipe:
+#   • Broadcom Wi-Fi:  akmod-wl (rebuilds on kernel update) + kmod-wl +
+#                      broadcom-wl (pre-built module + firmware so Wi-Fi works
+#                      on the very first boot, before akmods has finished).
+#   • FaceTime HD:     out-of-tree webcam driver via COPR akmod.
+#   • Power:           TLP for aggressive battery saving on 2013-era hardware
+#                      where battery life matters more than peak performance.
 #
-# Apple Silicon MacBook Airs (M1/M2/M3) are out of scope — see README.
+# Everything else (CachyOS kernel, debloat, app set, security tools, GNOME
+# extensions, Brew, branding) is identical to the main recipe.
+#
+# Apple Silicon (M1/M2/M3) is OUT OF SCOPE — those need Asahi Linux.
+# =============================================================================
 
 name: anubis-os-macbook
-description: anubis-os tuned for 2013/2015/2017 Intel MacBook Air (Broadcom + FaceTime HD)
+description: >
+  anubis-os tuned for 2013–2017 Intel MacBook Air/Pro (Broadcom Wi-Fi,
+  FaceTime HD webcam, battery-life tuning). Minimal Fedora 44 + GNOME.
 base-image: ghcr.io/ublue-os/silverblue-main
 image-version: "44"
 
+alt-tags:
+  - latest
+
 modules:
 
-  # ---------------------------------------------------------------------
-  # 1. Freeworld codecs & drivers
-  #    RPM Fusion is already enabled in the ublue-os/silverblue-main base
-  #    image. However the base image also ships a `fedora-multimedia` repo
-  #    from negativo17.org which 404s on Fedora 42 and causes every dnf
-  #    operation to fail. Disable it first, then install from RPM Fusion.
-  # ---------------------------------------------------------------------
+  # =========================================================================
+  # 1. REPOSITORY HYGIENE (identical to main recipe)
+  # =========================================================================
   - type: script
     snippets:
-      # The base image ships a negativo17 fedora-multimedia repo that 404s
-      # on Fedora 42. Remove it, then install the RPM Fusion release RPMs
-      # directly by URL so their repos are available for all later steps.
-      - echo 'cache-bust-2'
-      - grep -rl 'negativo17.org' /etc/yum.repos.d/ | xargs rm -f
-      - VER=$(rpm -E %fedora) && rpm-ostree install --idempotent https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-${VER}.noarch.rpm https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-${VER}.noarch.rpm
+      - echo '[anubis-os-macbook] Cleaning broken repos and ensuring RPM Fusion...'
+      - find /etc/yum.repos.d/ -type f -name '*.repo' -exec grep -q 'negativo17.org' {} \; -delete 2>/dev/null || true
+      - |
+        if ! rpm -q rpmfusion-free-release &>/dev/null; then
+          VER=$(rpm -E %fedora)
+          rpm-ostree install --idempotent \
+            https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-${VER}.noarch.rpm \
+            https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-${VER}.noarch.rpm \
+            || true
+        fi
 
+  # =========================================================================
+  # 2. CODECS & MULTIMEDIA (identical to main recipe)
+  # =========================================================================
   - type: rpm-ostree
     install:
       - ffmpeg
+      - gstreamer1-plugins-bad-free
+      - gstreamer1-plugins-ugly-free
+      - gstreamer1-plugins-good
+      - gstreamer1-plugin-libav
 
-  # ---------------------------------------------------------------------
-  # 2. CachyOS kernel — generic build only; these machines are old enough
-  #    that the generic baseline is the only sane default.
-  #    %OS_VERSION% is substituted by blue-build at build time.
-  # ---------------------------------------------------------------------
+  # =========================================================================
+  # 3. CACHYOS KERNEL (identical to main recipe)
+  #    Generic build — these machines are old enough that CPU-tuned variants
+  #    provide no measurable benefit. The generic CachyOS kernel already
+  #    includes all the scheduler and tuning patches that matter.
+  # =========================================================================
   - type: rpm-ostree
     repos:
       - https://copr.fedorainfracloud.org/coprs/bieszczaders/kernel-cachyos/repo/fedora-%OS_VERSION%/bieszczaders-kernel-cachyos-fedora-%OS_VERSION%.repo
+      - https://copr.fedorainfracloud.org/coprs/bieszczaders/kernel-cachyos-addons/repo/fedora-%OS_VERSION%/bieszczaders-kernel-cachyos-addons-fedora-%OS_VERSION%.repo
     install:
       - kernel-cachyos
+      - kernel-cachyos-devel
+      - scx-scheds
 
-  # ---------------------------------------------------------------------
-  # 3. Broadcom Wi-Fi (every MacBook Air in this range uses Broadcom)
-  #    akmod-wl builds the module at first boot against whatever kernel is
-  #    running; kmod-wl and broadcom-wl are the resulting built module and
-  #    firmware packages. Installing all three ensures Wi-Fi works both
-  #    immediately (kmod-wl) and after future kernel updates (akmod-wl rebuilds).
-  #    RPM Fusion is already enabled in the base image.
-  # ---------------------------------------------------------------------
+  # =========================================================================
+  # 4. MACBOOK-SPECIFIC HARDWARE ENABLEMENT
+  #    akmod-wl:   rebuilds Broadcom Wi-Fi driver on every kernel update.
+  #    kmod-wl:    pre-built module for the kernel shipped in THIS image, so
+  #                Wi-Fi works on first boot before akmods finishes.
+  #    broadcom-wl: firmware blob required by the wl driver.
+  #    facetimehd:  out-of-tree webcam driver for the FaceTime HD camera in
+  #                all MacBook Air/Pro 2013–2017. Built via akmods from the
+  #                COPR repo (BlueBuild's `akmods` module type doesn't cover
+  #                COPR repos, so we use rpm-ostree + the repo directly).
+  # =========================================================================
   - type: rpm-ostree
     install:
       - akmod-wl
       - kmod-wl
       - broadcom-wl
 
-  # ---------------------------------------------------------------------
-  # 4. FaceTime HD webcam (out-of-tree driver, all Air models in range)
-  # ---------------------------------------------------------------------
-  - type: akmods
+  - type: rpm-ostree
     repos:
       - https://copr.fedorainfracloud.org/coprs/dani/facetimehd/repo/fedora-%OS_VERSION%/dani-facetimehd-fedora-%OS_VERSION%.repo
     install:
-      - facetimehd
+      - akmod-facetimehd
+      - facetimehd-firmware
 
+  # =========================================================================
+  # 5. GENERAL HARDWARE + POWER MANAGEMENT
+  #    TLP: aggressive power saving for 2013-era hardware. On old MacBooks
+  #    battery life is the #1 concern, so TLP's defaults (which trade a small
+  #    amount of peak performance for significant battery extension) are the
+  #    right call. tuned-ppd is still installed for the GNOME power-profiles
+  #    D-Bus API, but TLP takes precedence for actual tuning.
+  # =========================================================================
   - type: rpm-ostree
     install:
       - fwupd
+      - NetworkManager
       - bluez
+      - plymouth
+      - plymouth-plugin-script
+      - dracut-tools
+      - tlp
+      - tlp-rdw
 
-  # ---------------------------------------------------------------------
-  # 5. Gaming
-  # ---------------------------------------------------------------------
+  - type: script
+    snippets:
+      # TLP and tuned both manage power; TLP wins on MacBooks.
+      # Disable tuned to avoid conflict, enable TLP.
+      - systemctl disable tuned.service 2>/dev/null || true
+      - systemctl enable tlp.service
+      - systemctl enable irqbalance.service
+
+  # =========================================================================
+  # 6. PERFORMANCE & SWAP (identical to main recipe)
+  # =========================================================================
   - type: rpm-ostree
     install:
-      - steam
-      - gamescope
+      - irqbalance
+      - zram-generator
       - gamemode
-      - mangohud
-      - lutris
-      - wine
+
+  # =========================================================================
+  # 7. DEBLOAT GNOME (identical to main recipe)
+  # =========================================================================
+  - type: script
+    scripts:
+      - 00-debloat-gnome.sh
+
+  # =========================================================================
+  # 8. MINIMAL APPLICATION SET (identical to main recipe)
+  # =========================================================================
+  - type: rpm-ostree
+    install:
+      - nautilus
+      - blackbox-terminal
+      - firefox
+      - htop
+      - fastfetch
+
+  # =========================================================================
+  # 9. CYBERSECURITY TOOLKIT (identical to main recipe)
+  # =========================================================================
+  - type: rpm-ostree
+    install:
+      - nmap
+      - nmap-ncat
+      - whois
+      - traceroute
+      - net-tools
+      - tcpdump
+      - bind-utils
       - firewalld
-      - clamav
-      - rkhunter
-      - aide
       - firejail
       - opensnitch
+      - clamav
+      - clamav-update
+      - rkhunter
+      - aide
+      - git
+      - vim
+      - curl
+      - wget
+      - python3
+      - python3-pip
 
-  - type: default-flatpaks
-    notify: true
-    system:
-      install:
-        - org.gimp.GIMP
-        - org.inkscape.Inkscape
-        - com.github.PintaProject.Pinta
-        - org.onlyoffice.desktopeditors
-        - com.brave.Browser
-
+  # =========================================================================
+  # 10. GNOME EXTENSIONS (identical to main recipe)
+  # =========================================================================
   - type: gnome-extensions
     install:
       - Dash to Dock
       - AppIndicator and KStatusNotifierItem Support
       - Blur my Shell
-      - Arc Menu
       - Caffeine
-      - PaperWM
 
+  # =========================================================================
+  # 11. FLATHUB + BAZAAR (identical to main recipe)
+  # =========================================================================
+  - type: default-flatpaks
+    configurations:
+      - scope: system
+        notify: true
+        repo:
+          url: https://dl.flathub.org/repo/flathub.flatpakrepo
+        install:
+          - io.github.kolunmi.Bazaar
+
+  # =========================================================================
+  # 12. HOMEBREW (identical to main recipe)
+  # =========================================================================
   - type: brew
 
+  # =========================================================================
+  # 13. STATIC FILES (identical to main recipe)
+  # =========================================================================
   - type: files
     files:
       - source: system
         destination: /
 
+  # =========================================================================
+  # 14. POST-INSTALL SCRIPTS (identical to main recipe)
+  # =========================================================================
   - type: script
     scripts:
+      - setup-os-release.sh
+      - setup-hostname.sh
+      - setup-logo.sh
+      - setup-plymouth.sh
+      - setup-wallpaper.sh
+      - enable-gnome-extensions-defaults.sh
+      - setup-ohmybash.sh
       - set-permissions.sh
       - enable-first-boot-units.sh
-      - enable-gnome-extensions-defaults.sh
 
+  # =========================================================================
+  # 15. SIGNING
+  # =========================================================================
   - type: signing
-
-# Note: low-power/battery tuning (TLP, power-profiles-daemon) is worth
-# adding explicitly for 2013-era hardware where battery life matters more
-# than on current machines — consider a `power-profiles-daemon` + `tlp`
-# module addition once the base image boots and is verified on real
-# hardware, rather than guessing settings blind here.

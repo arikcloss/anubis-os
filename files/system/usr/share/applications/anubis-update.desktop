@@ -2,19 +2,22 @@
 Version=1.0
 Type=Application
 Name=Update System
-Comment=Update all packages, Flatpaks, and Brew with topgrade
+Comment=Update rpm-ostree, Flatpaks, Brew, and firmware
 Icon=anubis-update
-# Opens Ptyxis (the default terminal in the image) and runs topgrade.
-# Falls back to gnome-terminal, then xterm if Ptyxis isn't available.
+# Opens Blackbox-terminal and runs `ujust update-all`, which handles
+# rpm-ostree upgrade, flatpak update, brew upgrade, and fwupd refresh.
+# Falls back to gnome-terminal, then xterm if Blackbox isn't available.
 Exec=/bin/bash -c '\
-    if command -v ptyxis &>/dev/null; then \
-        ptyxis -- bash -c "topgrade; echo; echo Done — press Enter to close; read"; \
+    if command -v blackbox-terminal &>/dev/null; then \
+        blackbox-terminal -- bash -c "ujust update-all; echo; echo Done — press Enter to close; read"; \
+    elif command -v ptyxis &>/dev/null; then \
+        ptyxis -- bash -c "ujust update-all; echo; echo Done — press Enter to close; read"; \
     elif command -v gnome-terminal &>/dev/null; then \
-        gnome-terminal -- bash -c "topgrade; echo; echo Done — press Enter to close; read"; \
+        gnome-terminal -- bash -c "ujust update-all; echo; echo Done — press Enter to close; read"; \
     else \
-        xterm -e bash -c "topgrade; echo; echo Done — press Enter to close; read"; \
+        xterm -e bash -c "ujust update-all; echo; echo Done — press Enter to close; read"; \
     fi'
 Terminal=false
 Categories=System;PackageManager;
-Keywords=update;upgrade;topgrade;system;packages;flatpak;
+Keywords=update;upgrade;system;packages;flatpak;brew;firmware;
 StartupNotify=true

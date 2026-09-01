@@ -4,11 +4,13 @@
 
 # anubis-os
 
-**Uma imagem imutável baseada em Fedora Silverblue para quem quer tudo — sem abrir mão de nada.**
+**O Fedora mais limpo possível. GNOME minimalista, kernel CachyOS, e nada que você não precise.**
 
 [![build](https://github.com/floatingskies/anubis-os/actions/workflows/build.yml/badge.svg)](https://github.com/floatingskies/anubis-os/actions/workflows/build.yml)
+[![iso](https://github.com/floatingskies/anubis-os/actions/workflows/iso.yml/badge.svg)](https://github.com/floatingskies/anubis-os/actions/workflows/iso.yml)
 [![Fedora 44](https://img.shields.io/badge/Fedora-44-51a2da?logo=fedora&logoColor=white)](https://fedoraproject.org/)
 [![Base: Silverblue](https://img.shields.io/badge/Base-Silverblue_Main-3584e4?logo=gnome&logoColor=white)](https://silverblue.fedoraproject.org/)
+[![Kernel: CachyOS](https://img.shields.io/badge/Kernel-CachyOS-8b5cf6?logo=linux&logoColor=white)](https://github.com/CachyOS/kernel-patches)
 [![Stars](https://img.shields.io/github/stars/floatingskies/anubis-os?style=social)](https://github.com/floatingskies/anubis-os/stargazers)
 
 </div>
@@ -17,9 +19,14 @@
 
 ## O que é isso?
 
-O **anubis-os** é uma imagem OCI customizada construída sobre o [Universal Blue](https://universal-blue.org/) — o mesmo projeto base do Bazzite e do Aurora. A ideia é simples: ter um sistema que joga, faz pentesting leve e mantém a máquina segura no dia a dia, tudo ao mesmo tempo, sem VMs, sem partições extras e sem quebrar nada.
+O **anubis-os** é uma imagem OCI imutável construída sobre [Universal Blue](https://universal-blue.org/) — o mesmo projeto base do Bazzite, Bluefin e Aurora. A ideia é ser o **sistema mais limpo possível** da base Fedora: GNOME, sim, mas sem nenhum app desnecessário. Tipo um CachyOS do Fedora, mas com GNOME.
 
-O sistema base é atômico e imutável. O que você instala via Flatpak ou Brew fica separado do OS. Atualizações são transacionais — se algo der errado, você volta com um comando.
+### Filosofia
+
+- **Minimal**: só Nautilus, Blackbox-terminal, Firefox, Htop, Bazaar, Brew e ferramentas de cibersegurança. Nada de Maps, Weather, Calendar, Music, Photos, Videos, Calculator, etc.
+- **Performático**: kernel CachyOS com patches de scheduler, scx-scheds (sched-ext), tuned, irqbalance, zram — tudo pré-configurado para rodar bem em hardware antigo (1st-gen Intel Core), novo e modesto.
+- **Estável**: cada script é idempotente, tem `set -euo pipefail` + trap de erro, e loga cada passo. A imagem e a ISO compartilham a mesma recipe — zero drift entre o que você testa no container e o que boota do ISO.
+- **Harmonioso**: o build da imagem e o build da ISO são workflows separados mas encadeados. A ISO é gerada a partir da imagem já publicada, não da recipe diretamente.
 
 ---
 
@@ -27,62 +34,69 @@ O sistema base é atômico e imutável. O que você instala via Flatpak ou Brew 
 
 | Imagem | Para quem |
 |--------|-----------|
-| `anubis-os` | Hardware genérico x86_64 |
-| `anubis-os-macbook` | MacBook Air Intel 2013–2017 (Wi-Fi Broadcom) |
+| `anubis-os` | Hardware genérico x86_64 (1st-gen Intel Core → atual, todo AMD64) |
+| `anubis-os-macbook` | MacBook Air/Pro Intel 2013–2017 (Broadcom Wi-Fi + FaceTime HD) |
 
 ---
 
 ## O que vem incluso
 
-### 🕹️ Gaming
+### Aplicativos GUI (4 apenas)
 
-Pronto para jogar sem configurar nada. O Wine não está na imagem — tudo roda via Flatpak com Proton, o que mantém o sistema limpo.
+| App | Função |
+|-----|--------|
+| **Nautilus** | Gerenciador de arquivos (GNOME Files) |
+| **Blackbox-terminal** | Terminal emulator |
+| **Firefox** | Navegador web |
+| **Htop** | Monitor de processos |
+| **Bazaar** (Flatpak) | Gerenciador de Flatpaks |
 
-| Pacote | Função |
-|--------|--------|
-| Steam (Flatpak) | Biblioteca + Proton |
-| Lutris (Flatpak) | GOG, Epic, Battle.net |
-| Dolphin, PPSSPP, PCSX2 | Emuladores |
-| `gamemode` | Otimização de CPU/GPU automática |
-| `gamescope` | Compositor dedicado para jogos |
-| `mangohud` | Overlay de performance |
+Tudo o mais foi removido do base image via `rpm-ostree override remove`. O app grid do GNOME mostra só o que importa.
 
-### 🔍 Pentesting leve
+### Kernel & Performance
 
-Ferramentas de rede e auditoria direto no terminal, sem quebrar as dependências do sistema operacional.
-
-```
-nmap  nmap-ncat  whois  curl  wget  traceroute  net-tools
-```
-
-Para ferramentas mais pesadas (`sqlmap`, `hydra`, `hashcat` etc.), a recomendação é usar um container via **Toolbox** ou **Distrobox** — assim você tem um ambiente dedicado e isolado sem contaminar a base.
-
-### 🔒 Segurança diária
-
-| Ferramenta | O que faz |
+| Componente | O que faz |
 |------------|-----------|
-| `firewalld` | Firewall com controle por zona |
-| `firejail` | Sandboxing de aplicações |
-| `clamav` | Antivírus |
-| `rkhunter` + `aide` | Detecção de rootkits e alterações no sistema |
+| **CachyOS kernel** | Kernel com patches de performance ( scheduler, CPU governor, BPF JIT hardening) |
+| **scx-scheds** | Sched-ext schedulers (scx_bpfland, scx_lavd) — responsividade de desktop sob carga |
+| **tuned + tuned-ppd** | Perfis adaptativos de performance/battery (integrado ao GNOME power settings) |
+| **irqbalance** | Distribui IRQs entre CPUs para menor latência |
+| **zram-generator** | Swap comprimido em RAM — o maior ganho de performance para hardware com 2-8 GB RAM |
+| **gamemode** | Otimização de CPU/governor sob demanda |
 
-### 🎨 GNOME configurado de fábrica
+### Ferramentas de Cibersegurança
 
-Extensões ativas por padrão via dconf — sem ter que entrar no Extension Manager no primeiro boot.
+Conjunto enxuto de ferramentas defensivas e de análise de rede, direto no RPM:
+
+```
+nmap  nmap-ncat  tcpdump  whois  traceroute  net-tools  bind-utils
+firewalld  firejail  opensnitch  clamav  rkhunter  aide
+git  vim  curl  wget  python3  python3-pip
+```
+
+Para ferramentas pesadas de pentesting (metasploit, hashcat, wireshark, hydra, sqlmap, etc.), use:
+
+```bash
+ujust install-pentest-tools
+```
+
+Isso cria um container Distrobox com o toolkit completo — a base imutável continua limpa.
+
+### GNOME (minimal)
+
+GNOME Shell + Control Center + GDM, com 4 extensões ativas por padrão:
 
 - **Dash to Dock** — dock sempre visível
-- **Blur my Shell** — fundo desfocado no launcher e no dash
-- **PaperWM** — gerenciamento de janelas em scroll horizontal (ótimo para monitores ultrawide)
-- **AppIndicator** — ícones de bandeja para apps como Discord e Telegram
-- **Logo Menu** — menu de sistema com a logo do anubis-os
-- **Caffeine** — impede o bloqueio de tela quando necessário
+- **AppIndicator** — ícones de bandeja para apps como Discord, Telegram
+- **Blur my Shell** — blur sutil no dash/overview (leve, GPU-friendly)
+- **Caffeine** — inibe o screensaver sob demanda
 
-### 🛠️ Terminal
+### Terminal & Shell
 
-- **fastfetch** — informações do sistema ao abrir o terminal
-- **Oh My Bash** — instalado no primeiro boot (sem precisar de internet na hora do rebase)
-- **Starship** — prompt customizado, instalado via `curl | sh` no primeiro boot ou `brew install starship`
-- **Homebrew** — gerenciador de pacotes para tudo que não está no rpm-ostree
+- **Oh My Bash** — instalado no primeiro boot (via systemd service)
+- **Starship** — prompt customizado, instalado no primeiro boot
+- **fastfetch** — info do sistema ao abrir o terminal (com ASCII art do Anubis)
+- **Homebrew** — gerenciador de pacotes user-space que não toca no OSTree
 
 ---
 
@@ -94,11 +108,17 @@ Extensões ativas por padrão via dconf — sem ter que entrar no Extension Mana
 # Imagem genérica
 rpm-ostree rebase ostree-unverified-registry:ghcr.io/floatingskies/anubis-os:44
 
-# Imagem para MacBook Air Intel 2013–2017
+# Imagem para MacBook Air/Pro Intel 2013–2017
 rpm-ostree rebase ostree-unverified-registry:ghcr.io/floatingskies/anubis-os-macbook:44
 ```
 
-Reinicie após o rebase. No próximo boot, o sistema vai rodar o setup de primeiro uso (Oh My Bash, Starship, permissões).
+Reinicie após o rebase. No próximo boot, o sistema roda o setup de primeiro uso (Oh My Bash, Starship, fastfetch config, wallpaper).
+
+### Instalação via ISO
+
+Baixe a ISO da [página de Actions](https://github.com/floatingskies/anubis-os/actions/workflows/iso.yml) (artifact `anubis-os-iso` ou `anubis-os-macbook-iso`), grave em um pendrive com `dd` ou Ventoy, e boot.
+
+A ISO instala o exato mesmo ostree image que o `rebase` puxaria — zero drift.
 
 ### Verificar a assinatura da imagem
 
@@ -110,18 +130,99 @@ cosign verify ghcr.io/floatingskies/anubis-os \
 
 ---
 
-## Primeiro boot
+## Estrutura do repositório
 
-O serviço `anubis-setup-user` roda automaticamente e:
+```
+anubis-os/
+├── recipe.yml                    # imagem genérica (Fedora 44 + GNOME minimal)
+├── recipe-macbook.yml            # variante MacBook (Broadcom + FaceTime HD + TLP)
+├── modules/                      # scripts de build-time (executados pelo BlueBuild)
+│   ├── 00-debloat-gnome.sh       # remove apps padrão do GNOME (Calendar, Maps, etc.)
+│   ├── setup-os-release.sh       # branding: /etc/os-release → "Anubis OS"
+│   ├── setup-hostname.sh         # hostname → "anubis"
+│   ├── setup-logo.sh             # substitui logos do Fedora pela logo Anubis
+│   ├── setup-plymouth.sh         # tema de boot splash + rebuild do initramfs
+│   ├── setup-wallpaper.sh        # remove wallpapers stock, instala coleção Anubis
+│   ├── enable-gnome-extensions-defaults.sh  # configura dconf profile + compila DB
+│   ├── setup-ohmybash.sh         # skeleton de .bashrc + first-boot script
+│   ├── set-permissions.sh        # garante permissões corretas em todos os arquivos
+│   └── enable-first-boot-units.sh  # habilita serviços de primeiro boot
+├── files/system/                 # arquivos estáticos copiados para / na imagem
+│   ├── etc/
+│   │   ├── dconf/db/local.d/     # defaults do GNOME (extensões, wallpaper, GDM logo)
+│   │   ├── sysctl.d/             # hardening do kernel
+│   │   ├── profile.d/            # alias do fastfetch
+│   │   ├── systemd/              # config do zram-generator
+│   │   └── tuned/                # perfil tuned ativo
+│   └── usr/
+│       ├── lib/systemd/system/   # units de primeiro boot (3 serviços)
+│       ├── lib/anubis-os/        # scripts de primeiro boot
+│       ├── share/backgrounds/    # wallpapers Anubis
+│       ├── share/fastfetch/      # config + ASCII art
+│       ├── share/pixmaps/        # logos
+│       ├── share/icons/          # ícones hicolor
+│       ├── share/ublue-os/just/  # comandos ujust customizados
+│       └── share/applications/   # .desktop do "Update System"
+├── .github/workflows/
+│   ├── build.yml                 # matrix build (anubis-os + macbook) → GHCR
+│   └── iso.yml                   # gera ISO da imagem publicada
+├── cosign.pub                    # chave pública para verificação de assinatura
+└── README.md
+```
 
-1. Clona o **Oh My Bash** em `~/.oh-my-bash`
-2. Instala o **Starship** em `~/.local/bin` via instalador oficial
-3. Aplica o `.bashrc` e as configs de fastfetch e Starship
+---
 
-Se quiser rodar manualmente depois:
+## Comandos ujust
+
+O anubis-os inclui comandos customizados via `ujust`:
 
 ```bash
-/usr/share/anubis-os/scripts/setup-ohmybash-user.sh
+# Performance
+ujust detect-cpu                 # identifica CPU e sugere kernel otimizado
+ujust switch-kernel-znver3       # AMD Zen 3 (Ryzen 5000)
+ujust switch-kernel-znver4       # AMD Zen 4 (Ryzen 7000)
+ujust enable-scx-scheduler       # ativa sched-ext (melhor responsividade)
+ujust set-tuned-profile          # troca perfil de performance
+
+# Segurança
+ujust enable-hardened-profile    # hardening agressivo (mitigations, nosmt, etc.)
+ujust run-aide-check             # verifica integridade de arquivos
+ujust run-rootkit-scan           # scan de rootkits
+ujust install-pentest-tools      # toolkit pentesting em container Distrobox
+
+# Desktop
+ujust reroll-wallpaper           # troca o wallpaper aleatoriamente
+ujust list-extensions            # lista extensões GNOME
+
+# Gaming (opt-in — nada de gaming no base image)
+ujust setup-gaming               # instala Steam + ProtonUp-Qt + Heroic via Flatpak
+
+# Sistema
+ujust update-all                 # atualiza tudo (rpm-ostree + flatpak + brew + fwupd)
+ujust cleanup-flatpaks           # remove runtimes não utilizados
+ujust roll-back                  # mostra deployments + como fazer rollback
+ujust show-system-info           # fastfetch
+```
+
+---
+
+## Build local
+
+```bash
+# Instalar o BlueBuild CLI
+brew install blue-build/tap/bluebuild
+# ou
+cargo install blue-build
+
+# Build da imagem genérica
+bluebuild build recipe.yml
+
+# Build da variante MacBook
+bluebuild build recipe-macbook.yml
+
+# Gerar ISO da imagem já publicada
+bluebuild generate-iso --output-dir iso-out \
+  image ghcr.io/floatingskies/anubis-os:44
 ```
 
 ---
@@ -130,7 +231,7 @@ Se quiser rodar manualmente depois:
 
 ### Adicionar pacotes ao sistema base
 
-Edite `recipe.yml` (ou `recipe-macbook.yml`) e faça rebuild via GitHub Actions.
+Edite `recipe.yml` (ou `recipe-macbook.yml`) e faça rebuild via GitHub Actions ou localmente.
 
 ### Instalar algo pontualmente sem rebuild
 
@@ -145,54 +246,20 @@ brew install <pacote>
 flatpak install flathub <app-id>
 ```
 
-### Ferramentas de pentesting num container isolado
-
-```bash
-# Criar um container Fedora com acesso à rede do host
-distrobox create --name pentest --image fedora:latest
-distrobox enter pentest
-sudo dnf install nmap hydra sqlmap hashcat
-```
-
 ---
 
-## Estrutura do repositório
+## Arquitetura de estabilidade
 
-```
-anubis-os/
-├── recipes/
-│   ├── recipe.yml              # imagem genérica
-│   └── recipe-macbook.yml      # variante MacBook
-├── files/
-│   └── system/                 # arquivos copiados para / na imagem
-│       ├── usr/share/backgrounds/anubis-os/
-│       ├── usr/share/pixmaps/
-│       └── usr/share/plymouth/themes/anubis/
-└── scripts/
-    ├── set-permissions.sh
-    ├── setup-hostname.sh
-    ├── setup-os-release.sh
-    ├── setup-logo.sh
-    ├── setup-plymouth.sh
-    ├── setup-wallpaper.sh
-    ├── setup-ohmybash.sh
-    ├── enable-gnome-extensions-defaults.sh
-    └── enable-first-boot-units.sh
-```
+Cada script no `modules/` segue estas regras:
 
----
+1. **`set -euo pipefail`** — falha em qualquer erro, variável não definida, ou pipe quebrado.
+2. **`trap '... ERR'`** — loga a linha exata onde o script falhou.
+3. **Idempotente** — seguro rodar em todo build. Usa `cp -n`, `grep -q || echo`, `|| true` para operações não-críticas.
+4. **Verificação de pré-requisitos** — checa se arquivos/diretórios existem antes de operar.
+5. **Logging** — cada passo printa o que está fazendo com prefixo `[nome-do-script]`.
+6. **Non-fatal warnings** — operações não-críticas falham com warning, não quebram o build.
 
-## Build local
-
-```bash
-# Instalar o BlueBuild CLI
-brew install blue-build/tap/bluebuild
-# ou
-cargo install blue-build
-
-# Build
-bluebuild build recipes/recipe.yml
-```
+O debloat do GNOME (`00-debloat-gnome.sh`) é especialmente robusto: filtra a apenas pacotes instalados e remove um por vez, então sobrevive a renames de pacotes entre versões do Fedora.
 
 ---
 
@@ -204,6 +271,6 @@ Issues e PRs são bem-vindos. Se encontrou um Flatpak com ID errado, um script q
 
 <div align="center">
 
-Feito com [Universal Blue](https://universal-blue.org/) · Baseado em [Fedora Silverblue](https://silverblue.fedoraproject.org/)
+Feito com [Universal Blue](https://universal-blue.org/) · Baseado em [Fedora Silverblue](https://silverblue.fedoraproject.org/) · Kernel [CachyOS](https://github.com/CachyOS/kernel-patches)
 
 </div>

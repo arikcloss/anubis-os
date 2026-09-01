@@ -1,3 +1,29 @@
+# =============================================================================
+# /etc/dconf/db/local.d/00-anubis-extensions
+# =============================================================================
+# System-wide GNOME Shell defaults for anubis-os.
+# This is the SINGLE SOURCE OF TRUTH for:
+#   • Which GNOME extensions are enabled by default
+#   • The default desktop + lock-screen wallpaper
+#
+# The UUIDs below MUST match the extensions installed by the `gnome-extensions`
+# module in recipe.yml. If you add/remove an extension there, update the UUID
+# here too. Mismatched UUIDs → GNOME silently ignores the missing extension.
+#
+# This file is compiled into /etc/dconf/db/local by `dconf update`, which is
+# called by modules/enable-gnome-extensions-defaults.sh at build time.
+# =============================================================================
+
 [org/gnome/shell]
-enabled-extensions=['dash-to-dock@micxgx.gmail.com', 'appindicatorsupport@rgcjonas.gmail.com', 'blur-my-shell@aunetx', 'arcmenu@arcmenu.com', 'caffeine@patapon.info', 'paperwm@hedning:matrix.org']
+# Exactly 4 extensions — matches the `gnome-extensions` module in recipe.yml:
+enabled-extensions=['dash-to-dock@micxgx.gmail.com', 'appindicatorsupport@rgcjonas.gmail.com', 'blur-my-shell@aunetx', 'caffeine@patapon.info']
 disable-user-extensions=false
+
+[org/gnome/desktop/background]
+picture-uri='file:///usr/share/backgrounds/anubis-os/anubis-wallpaper.png'
+picture-uri-dark='file:///usr/share/backgrounds/anubis-os/anubis-wallpaper.png'
+picture-options='zoom'
+
+[org/gnome/desktop/screensaver]
+picture-uri='file:///usr/share/backgrounds/anubis-os/anubis-wallpaper.png'
+picture-options='zoom'
