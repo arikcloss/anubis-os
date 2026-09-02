@@ -37,6 +37,7 @@ PACKAGES_TO_REMOVE=(
     gnome-music
     gnome-photos
     gnome-videos
+    ptyxis
     totem                  # gnome-videos backend
     gnome-software         # updates go through `ujust update-all`
     gnome-characters
