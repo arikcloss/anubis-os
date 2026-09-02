@@ -25,6 +25,12 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate recipe
+        run: |
+          python3 -c "import yaml; yaml.safe_load(open('recipe.yml'))" && echo "recipe.yml OK"
 
       - name: Build image
         uses: blue-build/github-action@v1
@@ -34,3 +40,12 @@ jobs:
           registry_token: ${{ secrets.GITHUB_TOKEN }}
           pr_event_number: ${{ github.event.number }}
           build_opts: "--no-sign"
+        env:
+          BUILDKIT_PROGRESS: plain
+
+      - name: Verify image
+        if: success()
+        run: |
+          IMAGE="ghcr.io/${{ github.repository_owner }}/anubis-os:latest"
+          docker pull "$IMAGE"
+          docker run --rm "$IMAGE" rpm-ostree status

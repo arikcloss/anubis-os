@@ -136,7 +136,7 @@ modules:
   # =========================================================================
   - type: script
     scripts:
-      - ../files/scripts/00-debloat-gnome.sh
+      - 00-debloat-gnome.sh
 
   # =========================================================================
   # 7. MINIMAL APPLICATION SET — the only GUI apps in the image
@@ -247,19 +247,19 @@ modules:
   - type: script
     scripts:
       # --- Identity ---
-      - ../files/scripts/setup-os-release.sh
-      - ../files/scripts/setup-hostname.sh
+      - setup-os-release.sh
+      - setup-hostname.sh
       # --- Visual branding ---
-      - ../files/scripts/setup-logo.sh
-      - ../files/scripts/setup-plymouth.sh
-      - ../files/scripts/setup-wallpaper.sh
+      - setup-logo.sh
+      - setup-plymouth.sh
+      - setup-wallpaper.sh
       # --- GNOME defaults (extensions enabled, wallpaper set via dconf) ---
-      - ../files/scripts/enable-gnome-extensions-defaults.sh
+      - enable-gnome-extensions-defaults.sh
       # --- Terminal/shell skeleton (Oh My Bash + Starship + fastfetch) ---
-      - ../files/scripts/setup-ohmybash.sh
+      - setup-ohmybash.sh
       # --- Permissions & first-boot services ---
-      - ../files/scripts/set-permissions.sh
-      - ../files/scripts/enable-first-boot-units.sh
+      - set-permissions.sh
+      - enable-first-boot-units.sh
 
   # =========================================================================
   # 14. SIGNING — cosign, using the repo's cosign.pub

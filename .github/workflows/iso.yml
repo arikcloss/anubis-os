@@ -1,6 +1,10 @@
 name: Build anubis-os ISO
 on:
   workflow_dispatch:
+  workflow_run:
+    workflows: ["Build anubis-os images"]
+    types: [completed]
+    branches: [main]
 
 jobs:
   iso:
@@ -9,11 +13,20 @@ jobs:
     permissions:
       contents: read
       packages: write
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Cache BlueBuild CLI
+        id: bluebuild-cache
+        uses: actions/cache@v4
+        with:
+          path: /usr/bin/bluebuild
+          key: bluebuild-cli-v0.9.37
+
       - name: Install BlueBuild CLI
+        if: steps.bluebuild-cache.outputs.cache-hit != 'true'
         run: |
           sudo docker create --name blue-build-installer ghcr.io/blue-build/cli:v0.9-installer
           sudo docker cp blue-build-installer:/out/bluebuild /usr/bin/bluebuild
@@ -27,6 +40,11 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Pull image for ISO
+        run: |
+          IMAGE="ghcr.io/${{ github.repository_owner }}/anubis-os:latest"
+          docker pull "$IMAGE"
+
       - name: Generate ISO
         run: |
           IMAGE="ghcr.io/${{ github.repository_owner }}/anubis-os:latest"
@@ -36,7 +54,12 @@ jobs:
             --iso-name anubis-os.iso \
             image "$IMAGE"
 
-      - name: Upload ISO artifact (7 dias)
+      - name: Verify ISO
+        run: |
+          ls -la iso-out/
+          file iso-out/*.iso
+
+      - name: Upload ISO artifact (7 days)
         uses: actions/upload-artifact@v4
         with:
           name: iso-anubis-os
