@@ -1,7 +1,8 @@
 [Unit]
 Description=anubis-os: pick a random default wallpaper on first boot
 ConditionPathExists=!/var/lib/anubis-os/.wallpaper-set
-After=multi-user.target
+After=anubis-setup-user.service
+Wants=anubis-setup-user.service
 
 [Service]
 Type=oneshot

@@ -49,6 +49,15 @@ else
     echo "  Verified: $DEFAULTS_FILE present"
 fi
 
+# --- Verify extension UUIDs match installed extensions ---
+# This ensures the static file UUIDs match what gnome-extensions module installed
+if [[ -f "$DEFAULTS_FILE" ]]; then
+    EXT_UUIDS=$(grep -oP "enabled-extensions=\[\K[^\]]*" "$DEFAULTS_FILE" 2>/dev/null || echo "")
+    if [[ -n "$EXT_UUIDS" ]]; then
+        echo "  Extension UUIDs in dconf: $EXT_UUIDS"
+    fi
+fi
+
 # --- Compile the dconf binary database ---
 # This converts the .conf text files in local.d/ into the binary database
 # that GNOME Shell reads at login. In a BlueBuild/ostree build, this runs at

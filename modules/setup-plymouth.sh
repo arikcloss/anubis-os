@@ -1,18 +1,29 @@
 #!/usr/bin/env bash
+# =============================================================================
+# setup-plymouth.sh
+# =============================================================================
+# Creates and applies the Anubis OS Plymouth boot splash theme.
+# Runs at build time. Rebuilds initramfs so theme persists across kernel updates.
+# =============================================================================
 set -euo pipefail
 trap 'echo "[setup-plymouth] FAILED at line $LINENO" >&2' ERR
 
-if [[ ! -f /usr/share/pixmaps/anubis-logo.png ]]; then
-    echo "ERROR: /usr/share/pixmaps/anubis-logo.png not found. Did the files module run?" >&2
+SRC_LOGO=/usr/share/pixmaps/anubis-logo.png
+
+if [[ ! -f "$SRC_LOGO" ]]; then
+    echo "ERROR: $SRC_LOGO not found. Did the files module run?" >&2
     exit 1
 fi
 
 THEME_DIR=/usr/share/plymouth/themes/anubis
 mkdir -p "$THEME_DIR"
 
-install -Dm644 /usr/share/pixmaps/anubis-logo.png \
-    "$THEME_DIR/anubis-logo.png"
+echo "[setup-plymouth] Installing Anubis Plymouth theme..."
 
+# Copy logo to theme directory
+install -Dm644 "$SRC_LOGO" "$THEME_DIR/anubis-logo.png"
+
+# Theme metadata
 cat > "$THEME_DIR/anubis.plymouth" << 'PLYMOUTH'
 [Plymouth Theme]
 Name=Anubis OS
@@ -24,8 +35,7 @@ ImageDir=/usr/share/plymouth/themes/anubis
 ScriptFile=/usr/share/plymouth/themes/anubis/anubis.script
 PLYMOUTH
 
-# Solid dark background, centered logo with a smooth fade-in.
-# Clean and modern look with 100% stability on all graphic drivers.
+# Theme script: solid dark background, centered logo, smooth fade-in
 cat > "$THEME_DIR/anubis.script" << 'SCRIPT'
 # --- background -------------------------------------------------------
 Window.SetBackgroundTopColor(0.07, 0.07, 0.09);
@@ -70,7 +80,7 @@ fun display_password_callback(prompt, bullets) {
 Plymouth.SetDisplayPasswordFunction(display_password_callback);
 SCRIPT
 
-# --- Apply the theme AND rebuild the initramfs --------------------------
+# Apply theme and rebuild initramfs
 if ! command -v plymouth-set-default-theme &>/dev/null; then
     echo "ERROR: plymouth-set-default-theme not found — is the 'plymouth' package installed?" >&2
     exit 1
@@ -78,4 +88,4 @@ fi
 
 plymouth-set-default-theme -R anubis
 
-echo "[setup-plymouth] Done."
+echo "[setup-plymouth] Done. Theme 'anubis' applied and initramfs rebuilt."

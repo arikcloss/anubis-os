@@ -45,9 +45,6 @@ WALLPAPER_COUNT=$(find "$WALLPAPER_DIR" -maxdepth 1 -type f \
 echo "  $WALLPAPER_COUNT wallpaper(s) present in $WALLPAPER_DIR"
 
 # --- Remove stock GNOME / Fedora wallpapers (debloat) ----------------------
-# These directories ship with Fedora Silverblue and add ~50-100MB of images
-# the user will never look at. Removing them keeps Settings > Background
-# clean (only Anubis wallpapers show up).
 echo "  Removing stock GNOME wallpapers..."
 rm -rf /usr/share/backgrounds/gnome 2>/dev/null || true
 # Fedora versioned wallpaper dirs (f40, f41, f44, etc.)
@@ -92,6 +89,8 @@ fi
 if command -v dconf &>/dev/null; then
     dconf update 2>/dev/null || true
     echo "  dconf database compiled"
+else
+    echo "  WARNING: dconf command not found — database not compiled" >&2
 fi
 
 echo "[setup-wallpaper] Done."

@@ -8,13 +8,14 @@ ConditionPathExists=!/var/lib/anubis-os/.user-setup-done
 
 [Service]
 Type=oneshot
-# Detect the first non-root human user (UID >= 1000)
+# Detect the first non-root human user (UID >= 1000) and run setup as that user
 ExecStart=/bin/bash -c '\
+    set -euo pipefail; \
     USER_NAME=$(getent passwd | awk -F: '\''$3 >= 1000 && $3 < 65534 {print $1; exit}'\''); \
-    [[ -z "$USER_NAME" ]] && exit 0; \
-    su - "$USER_NAME" -c /usr/share/anubis-os/scripts/setup-ohmybash-user.sh && \
-    mkdir -p /var/lib/anubis-os && \
-    touch /var/lib/anubis-os/.user-setup-done'
+    [[ -z "$USER_NAME" ]] && { echo "No human user found"; exit 0; }; \
+    echo "Setting up Oh My Bash + Starship for user: $USER_NAME"; \
+    runuser -u "$USER_NAME" -- /usr/share/anubis-os/scripts/setup-ohmybash-user.sh; \
+    mkdir -p /var/lib/anubis-os && touch /var/lib/anubis-os/.user-setup-done'
 RemainAfterExit=true
 
 [Install]
