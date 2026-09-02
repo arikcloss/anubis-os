@@ -154,6 +154,7 @@ modules:
       - firefox
       - htop
       - fastfetch
+      - libreoffice
 
   # =========================================================================
   # 8. CYBERSECURITY TOOLKIT — lean, defensive + network analysis
