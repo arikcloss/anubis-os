@@ -18,9 +18,7 @@
 # =============================================================================
 
 name: anubis-os-macbook
-description: >
-  anubis-os tuned for 2013–2017 Intel MacBook Air/Pro (Broadcom Wi-Fi,
-  FaceTime HD webcam, battery-life tuning). Minimal Fedora 44 + GNOME.
+description: anubis-os tuned for 2013-2017 Intel MacBook Air/Pro (Broadcom Wi-Fi, FaceTime HD webcam, battery-life tuning). Minimal Fedora 44 + GNOME.
 base-image: ghcr.io/ublue-os/silverblue-main
 image-version: "44"
 

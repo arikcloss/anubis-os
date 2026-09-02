@@ -16,9 +16,7 @@
 # =============================================================================
 
 name: anubis-os
-description: >
-  Minimal, performance-tuned immutable Fedora 44 (Silverblue) with GNOME.
-  CachyOS kernel, lean cybersecurity toolkit, Brew, and nothing you don't need.
+description: Minimal, performance-tuned immutable Fedora 44 (Silverblue) with GNOME. CachyOS kernel, lean cybersecurity toolkit, Brew, and nothing you don't need.
 base-image: ghcr.io/ublue-os/silverblue-main
 image-version: "44"
 
