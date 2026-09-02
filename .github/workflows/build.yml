@@ -26,11 +26,12 @@ jobs:
       - name: Build image
         uses: blue-build/github-action@v1
         with:
-          recipe: recipes/recipe.yml
+          recipe: recipe.yml
           cosign_private_key: ""
           registry_token: ${{ secrets.GITHUB_TOKEN }}
           pr_event_number: ${{ github.event.number }}
           build_opts: "--no-sign"
+        working-directory: recipes
 
   build-macbook:
     name: Build (anubis-os-macbook)
@@ -46,8 +47,9 @@ jobs:
       - name: Build image
         uses: blue-build/github-action@v1
         with:
-          recipe: recipes/recipe-macbook.yml
+          recipe: recipe-macbook.yml
           cosign_private_key: ""
           registry_token: ${{ secrets.GITHUB_TOKEN }}
           pr_event_number: ${{ github.event.number }}
           build_opts: "--no-sign"
+        working-directory: recipes
