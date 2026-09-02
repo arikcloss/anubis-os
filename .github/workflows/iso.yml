@@ -40,22 +40,7 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Install skopeo
-        run: |
-          sudo apt-get update && sudo apt-get install -y skopeo
-
-      - name: Pull image for ISO (using skopeo to avoid layer depth limit)
-        run: |
-          IMAGE="ghcr.io/${{ github.repository_owner }}/anubis-os:latest"
-          mkdir -p /tmp/iso-image
-          skopeo copy --src-creds="${{ github.repository_owner }}:${{ secrets.GITHUB_TOKEN }}" \
-            "docker://$IMAGE" "docker-archive:/tmp/iso-image/anubis-os.tar:$IMAGE"
-
-      - name: Load image into Docker
-        run: |
-          docker load -i /tmp/iso-image/anubis-os.tar
-
-      - name: Generate ISO
+      - name: Generate ISO (direct from registry, no docker load)
         run: |
           IMAGE="ghcr.io/${{ github.repository_owner }}/anubis-os:latest"
           mkdir -p iso-out
