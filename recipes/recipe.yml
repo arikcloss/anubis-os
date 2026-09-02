@@ -90,10 +90,6 @@ modules:
   #    fwupd: firmware updates (BIOS/EC/peripherals)
   #    NetworkManager: networking (already in base, kept explicit)
   #    bluez: Bluetooth
-  #    akmod-wl: Broadcom Wi-Fi (built locally at first boot for whatever
-  #              kernel is running — essential for MacBook Air 2013-2017 and
-  #              some older Dell/HP laptops). Safe no-op on hardware without
-  #              Broadcom chips; the akmods service just won't build anything.
   #    plymouth + dracut-tools: boot splash + initramfs inspection tools
   # =========================================================================
   - type: rpm-ostree
@@ -101,7 +97,6 @@ modules:
       - fwupd
       - NetworkManager
       - bluez
-      - akmod-wl
       - plymouth
       - plymouth-plugin-script
       - dracut-tools

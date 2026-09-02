@@ -71,17 +71,16 @@ modules:
 
   # =========================================================================
   # 4. MACBOOK-SPECIFIC HARDWARE ENABLEMENT
-  #    akmod-wl:   rebuilds Broadcom Wi-Fi driver on every kernel update.
-  #    kmod-wl:    pre-built module for the kernel shipped in THIS image, so
-  #                Wi-Fi works on first boot before akmods finishes.
-  #    broadcom-wl: firmware blob required by the wl driver.
-  #    facetimehd:  out-of-tree webcam driver for the FaceTime HD camera in
-  #                all MacBook Air/Pro 2013–2017. Built via akmods from the
-  #                COPR repo (BlueBuild's `akmods` module type doesn't cover
-  #                COPR repos, so we use rpm-ostree + the repo directly).
+  #    Uses BlueBuild's `akmods` module type for proper kernel module building.
+  #    akmod-wl + kmod-wl + broadcom-wl: Broadcom Wi-Fi (pre-built for image kernel,
+  #                rebuilds on kernel updates via akmods service at boot).
+  #    akmod-facetimehd + facetimehd-firmware: FaceTime HD webcam driver from COPR.
   # =========================================================================
-  - type: rpm-ostree
-    install:
+  - type: akmods
+    kernels:
+      - kernel-cachyos
+      - kernel-cachyos-devel
+    rpms:
       - akmod-wl
       - kmod-wl
       - broadcom-wl
