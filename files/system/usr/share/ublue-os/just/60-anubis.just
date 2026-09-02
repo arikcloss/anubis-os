@@ -164,6 +164,35 @@ install-pentest-tools:
     echo "To enter the pentest environment: distrobox enter anubis-pentest"
 
 # -----------------------------------------------------------------------------
+# Hardware enablement
+# -----------------------------------------------------------------------------
+
+[group('Hardware')]
+install-broadcom-wifi:
+    #!/usr/bin/env bash
+    set -e
+    echo "Installing Broadcom Wi-Fi driver (akmod-wl + kmod-wl + broadcom-wl)..."
+    echo "For MacBook Air/Pro 2013-2017 and other Broadcom 43xx devices."
+    echo ""
+    sudo rpm-ostree install akmod-wl kmod-wl broadcom-wl
+    echo ""
+    echo "✓ Installed. Reboot required: systemctl reboot"
+    echo "After reboot, Wi-Fi should work automatically."
+
+[group('Hardware')]
+install-facetimehd-webcam:
+    #!/usr/bin/env bash
+    set -e
+    echo "Installing FaceTime HD webcam driver (MacBook 2013-2017)..."
+    echo "Requires COPR repo: dani/facetimehd"
+    echo ""
+    sudo rpm-ostree install \
+      https://copr.fedorainfracloud.org/coprs/dani/facetimehd/repo/fedora-$(rpm -E %fedora)/dani-facetimehd-fedora-$(rpm -E %fedora).repo
+    sudo rpm-ostree install akmod-facetimehd facetimehd-firmware
+    echo ""
+    echo "✓ Installed. Reboot required: systemctl reboot"
+
+# -----------------------------------------------------------------------------
 # Desktop / personalization
 # -----------------------------------------------------------------------------
 

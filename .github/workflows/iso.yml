@@ -1,19 +1,10 @@
-name: Build anubis-os ISOs
+name: Build anubis-os ISO
 on:
   workflow_dispatch:
-    inputs:
-      variant:
-        description: "Qual variante gerar ISO"
-        required: true
-        default: "anubis-os"
-        type: choice
-        options:
-          - anubis-os
-          - anubis-os-macbook
 
 jobs:
   iso:
-    name: ISO (${{ github.event.inputs.variant }})
+    name: ISO (anubis-os)
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -38,18 +29,17 @@ jobs:
 
       - name: Generate ISO
         run: |
-          VARIANT="${{ github.event.inputs.variant }}"
-          IMAGE="ghcr.io/${{ github.repository_owner }}/${VARIANT}:latest"
+          IMAGE="ghcr.io/${{ github.repository_owner }}/anubis-os:latest"
           mkdir -p iso-out
           sudo bluebuild generate-iso \
             --output-dir iso-out \
-            --iso-name ${VARIANT}.iso \
+            --iso-name anubis-os.iso \
             image "$IMAGE"
 
       - name: Upload ISO artifact (7 dias)
         uses: actions/upload-artifact@v4
         with:
-          name: iso-${{ github.event.inputs.variant }}
+          name: iso-anubis-os
           path: iso-out/*.iso
           retention-days: 7
           if-no-files-found: error

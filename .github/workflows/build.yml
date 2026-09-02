@@ -34,26 +34,3 @@ jobs:
           registry_token: ${{ secrets.GITHUB_TOKEN }}
           pr_event_number: ${{ github.event.number }}
           build_opts: "--no-sign"
-
-  build-macbook:
-    name: Build (anubis-os-macbook)
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-      id-token: write
-    defaults:
-      run:
-        working-directory: recipes
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Build image
-        uses: blue-build/github-action@v1
-        with:
-          recipe: recipe-macbook.yml
-          cosign_private_key: ""
-          registry_token: ${{ secrets.GITHUB_TOKEN }}
-          pr_event_number: ${{ github.event.number }}
-          build_opts: "--no-sign"

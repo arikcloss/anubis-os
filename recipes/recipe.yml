@@ -87,16 +87,11 @@ modules:
 
   # =========================================================================
   # 4. HARDWARE ENABLEMENT
-  #    fwupd: firmware updates (BIOS/EC/peripherals)
-  #    NetworkManager: networking (already in base, kept explicit)
-  #    bluez: Bluetooth
   #    plymouth + dracut-tools: boot splash + initramfs inspection tools
+  #    (fwupd, NetworkManager, bluez are in base image)
   # =========================================================================
   - type: rpm-ostree
     install:
-      - fwupd
-      - NetworkManager
-      - bluez
       - plymouth
       - plymouth-plugin-script
       - dracut-tools
@@ -141,7 +136,7 @@ modules:
   # =========================================================================
   - type: script
     scripts:
-      - 00-debloat-gnome.sh
+      - ../files/scripts/00-debloat-gnome.sh
 
   # =========================================================================
   # 7. MINIMAL APPLICATION SET — the only GUI apps in the image
@@ -180,7 +175,6 @@ modules:
       # --- Defensive / privacy ---
       - firewalld
       - firejail
-      - opensnitch
       - clamav
       - clamav-update
       - rkhunter
@@ -253,19 +247,19 @@ modules:
   - type: script
     scripts:
       # --- Identity ---
-      - setup-os-release.sh
-      - setup-hostname.sh
+      - ../files/scripts/setup-os-release.sh
+      - ../files/scripts/setup-hostname.sh
       # --- Visual branding ---
-      - setup-logo.sh
-      - setup-plymouth.sh
-      - setup-wallpaper.sh
+      - ../files/scripts/setup-logo.sh
+      - ../files/scripts/setup-plymouth.sh
+      - ../files/scripts/setup-wallpaper.sh
       # --- GNOME defaults (extensions enabled, wallpaper set via dconf) ---
-      - enable-gnome-extensions-defaults.sh
+      - ../files/scripts/enable-gnome-extensions-defaults.sh
       # --- Terminal/shell skeleton (Oh My Bash + Starship + fastfetch) ---
-      - setup-ohmybash.sh
+      - ../files/scripts/setup-ohmybash.sh
       # --- Permissions & first-boot services ---
-      - set-permissions.sh
-      - enable-first-boot-units.sh
+      - ../files/scripts/set-permissions.sh
+      - ../files/scripts/enable-first-boot-units.sh
 
   # =========================================================================
   # 14. SIGNING — cosign, using the repo's cosign.pub

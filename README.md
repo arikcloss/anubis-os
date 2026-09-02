@@ -30,12 +30,14 @@ O **anubis-os** é uma imagem OCI imutável construída sobre [Universal Blue](h
 
 ---
 
-## Variantes
+## Hardware suportado
 
-| Imagem | Para quem |
-|--------|-----------|
-| `anubis-os` | Hardware genérico x86_64 (1st-gen Intel Core → atual, todo AMD64) |
-| `anubis-os-macbook` | MacBook Air/Pro Intel 2013–2017 (Broadcom Wi-Fi + FaceTime HD) |
+| Hardware | Como habilitar |
+|----------|----------------|
+| x86_64 genérico (1st-gen Intel Core → atual, todo AMD64) | Funciona out-of-the-box |
+| MacBook Air/Pro Intel 2013–2017 (Broadcom Wi-Fi) | `ujust install-broadcom-wifi` + reboot |
+| MacBook Air/Pro Intel 2013–2017 (FaceTime HD webcam) | `ujust install-facetimehd-webcam` + reboot |
+| Outros laptops com Broadcom 43xx | `ujust install-broadcom-wifi` + reboot |
 
 ---
 
@@ -105,18 +107,28 @@ GNOME Shell + Control Center + GDM, com 4 extensões ativas por padrão:
 ### Rebase a partir de qualquer sistema Universal Blue ou Silverblue
 
 ```bash
-# Imagem genérica
 rpm-ostree rebase ostree-unverified-registry:ghcr.io/floatingskies/anubis-os:latest
-
-# Imagem para MacBook Air/Pro Intel 2013–2017
-rpm-ostree rebase ostree-unverified-registry:ghcr.io/floatingskies/anubis-os-macbook:latest
 ```
 
 Reinicie após o rebase. No próximo boot, o sistema roda o setup de primeiro uso (Oh My Bash, Starship, fastfetch config, wallpaper).
 
+### Hardware com Broadcom Wi-Fi (MacBook 2013-2017, alguns Dell/HP)
+
+```bash
+ujust install-broadcom-wifi
+systemctl reboot
+```
+
+### FaceTime HD Webcam (MacBook 2013-2017)
+
+```bash
+ujust install-facetimehd-webcam
+systemctl reboot
+```
+
 ### Instalação via ISO
 
-Baixe a ISO da [página de Actions](https://github.com/floatingskies/anubis-os/actions/workflows/iso.yml) (artifact `iso-anubis-os` ou `iso-anubis-os-macbook`), grave em um pendrive com `dd` ou Ventoy, e boot.
+Baixe a ISO da [página de Actions](https://github.com/floatingskies/anubis-os/actions/workflows/iso.yml) (artifact `iso-anubis-os`), grave em um pendrive com `dd` ou Ventoy, e boot.
 
 A ISO instala o exato mesmo ostree image que o `rebase` puxaria — zero drift.
 
@@ -124,10 +136,6 @@ A ISO instala o exato mesmo ostree image que o `rebase` puxaria — zero drift.
 
 ```bash
 cosign verify ghcr.io/floatingskies/anubis-os \
-  --certificate-identity-regexp=https://github.com/floatingskies \
-  --certificate-oidc-issuer=https://token.actions.githubusercontent.com
-
-cosign verify ghcr.io/floatingskies/anubis-os-macbook \
   --certificate-identity-regexp=https://github.com/floatingskies \
   --certificate-oidc-issuer=https://token.actions.githubusercontent.com
 ```
