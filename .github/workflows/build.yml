@@ -12,7 +12,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  build-main:
     name: Build (anubis-os)
     runs-on: ubuntu-latest
     permissions:
@@ -26,7 +26,27 @@ jobs:
       - name: Build image
         uses: blue-build/github-action@v1
         with:
-          recipe: recipe.yml
+          recipe: recipes/recipe.yml
+          cosign_private_key: ""
+          registry_token: ${{ secrets.GITHUB_TOKEN }}
+          pr_event_number: ${{ github.event.number }}
+          build_opts: "--no-sign"
+
+  build-macbook:
+    name: Build (anubis-os-macbook)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build image
+        uses: blue-build/github-action@v1
+        with:
+          recipe: recipes/recipe-macbook.yml
           cosign_private_key: ""
           registry_token: ${{ secrets.GITHUB_TOKEN }}
           pr_event_number: ${{ github.event.number }}

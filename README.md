@@ -106,17 +106,17 @@ GNOME Shell + Control Center + GDM, com 4 extensões ativas por padrão:
 
 ```bash
 # Imagem genérica
-rpm-ostree rebase ostree-unverified-registry:ghcr.io/floatingskies/anubis-os:44
+rpm-ostree rebase ostree-unverified-registry:ghcr.io/floatingskies/anubis-os:latest
 
 # Imagem para MacBook Air/Pro Intel 2013–2017
-rpm-ostree rebase ostree-unverified-registry:ghcr.io/floatingskies/anubis-os-macbook:44
+rpm-ostree rebase ostree-unverified-registry:ghcr.io/floatingskies/anubis-os-macbook:latest
 ```
 
 Reinicie após o rebase. No próximo boot, o sistema roda o setup de primeiro uso (Oh My Bash, Starship, fastfetch config, wallpaper).
 
 ### Instalação via ISO
 
-Baixe a ISO da [página de Actions](https://github.com/floatingskies/anubis-os/actions/workflows/iso.yml) (artifact `anubis-os-iso` ou `anubis-os-macbook-iso`), grave em um pendrive com `dd` ou Ventoy, e boot.
+Baixe a ISO da [página de Actions](https://github.com/floatingskies/anubis-os/actions/workflows/iso.yml) (artifact `iso-anubis-os` ou `iso-anubis-os-macbook`), grave em um pendrive com `dd` ou Ventoy, e boot.
 
 A ISO instala o exato mesmo ostree image que o `rebase` puxaria — zero drift.
 
@@ -124,6 +124,10 @@ A ISO instala o exato mesmo ostree image que o `rebase` puxaria — zero drift.
 
 ```bash
 cosign verify ghcr.io/floatingskies/anubis-os \
+  --certificate-identity-regexp=https://github.com/floatingskies \
+  --certificate-oidc-issuer=https://token.actions.githubusercontent.com
+
+cosign verify ghcr.io/floatingskies/anubis-os-macbook \
   --certificate-identity-regexp=https://github.com/floatingskies \
   --certificate-oidc-issuer=https://token.actions.githubusercontent.com
 ```
@@ -134,8 +138,9 @@ cosign verify ghcr.io/floatingskies/anubis-os \
 
 ```
 anubis-os/
-├── recipe.yml                    # imagem genérica (Fedora 44 + GNOME minimal)
-├── recipe-macbook.yml            # variante MacBook (Broadcom + FaceTime HD + TLP)
+├── recipes/
+│   ├── recipe.yml                # imagem genérica (Fedora 44 + GNOME minimal)
+│   └── recipe-macbook.yml        # variante MacBook (Broadcom + FaceTime HD + TLP)
 ├── modules/                      # scripts de build-time (executados pelo BlueBuild)
 │   ├── 00-debloat-gnome.sh       # remove apps padrão do GNOME (Calendar, Maps, etc.)
 │   ├── setup-os-release.sh       # branding: /etc/os-release → "Anubis OS"
@@ -215,10 +220,10 @@ brew install blue-build/tap/bluebuild
 cargo install blue-build
 
 # Build da imagem genérica
-bluebuild build recipe.yml
+bluebuild build recipes/recipe.yml
 
 # Build da variante MacBook
-bluebuild build recipe-macbook.yml
+bluebuild build recipes/recipe-macbook.yml
 
 # Gerar ISO da imagem já publicada
 bluebuild generate-iso --output-dir iso-out \
