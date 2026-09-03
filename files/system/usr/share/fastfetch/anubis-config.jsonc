@@ -19,8 +19,8 @@
   "logo": {
     "type": "file",
     "source": "/usr/share/fastfetch/anubis-ascii.txt",
-    "width": 67,
-    "height": 33,
+    "width": 40,
+    "height": 20,
     "padding": {
       "top": 1,
       "right": 4
@@ -31,7 +31,7 @@
   },
 
   "display": {
-    "separator": " ➜ ",
+    "separator": " : ",
     "color": {
       "keys": "magenta",
       "title": "yellow"
@@ -51,7 +51,7 @@
     },
     {
       "type": "title",
-      "key": " 󰣇 ",
+      "key": "",
       "format": "Anubis Linux session"
     },
     {
@@ -60,52 +60,52 @@
     },
     {
       "type": "os",
-      "key": " 󰣛 OS"
+      "key": "OS"
     },
     {
       "type": "kernel",
-      "key": " 󰒋 Kernel"
+      "key": "Kernel"
     },
     {
       "type": "uptime",
-      "key": " 󰅐 Uptime"
+      "key": "Uptime"
     },
     {
       "type": "packages",
-      "key": " 󰏗 Packages"
+      "key": "Packages"
     },
     {
       "type": "de",
-      "key": " 󰧨 Desktop"
+      "key": "Desktop"
     },
     {
       "type": "wm",
-      "key": " 󱂬 WM"
+      "key": "WM"
     },
     {
       "type": "shell",
-      "key": " 󰆍 Shell"
+      "key": "Shell"
     },
     {
       "type": "terminal",
-      "key": "  Terminal"
+      "key": "Terminal"
     },
     "break",
     {
       "type": "cpu",
-      "key": "  CPU"
+      "key": "CPU"
     },
     {
       "type": "gpu",
-      "key": " 󰢮 GPU"
+      "key": "GPU"
     },
     {
       "type": "memory",
-      "key": " 󰍛 Memory"
+      "key": "Memory"
     },
     {
       "type": "disk",
-      "key": " 󰋊 Disk",
+      "key": "Disk",
       "folders": "/"
     },
     "break",
