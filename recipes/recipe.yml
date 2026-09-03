@@ -234,14 +234,14 @@ modules:
   #    branding complexity, fragile UUIDs). Branding is handled by GDM logo,
   #    Plymouth theme, wallpaper, os-release, and fastfetch ASCII.
   # =========================================================================
-  - type: gnome-extensions
-    install:
-      - Dash to Dock
-      - AppIndicator and KStatusNotifierItem Support
-      - Blur my Shell
-      - Caffeine
-      - Logo Menu
-      - PaperWM
+  #- type: gnome-extensions
+  #  install:
+  #     - Dash to Dock
+  #    - AppIndicator and KStatusNotifierItem Support
+  #    - Blur my Shell
+  #    - Caffeine
+ #     - Logo Menu
+ #     - PaperWM
 
   # =========================================================================
   # 10. FLATHUB — remote enabled
