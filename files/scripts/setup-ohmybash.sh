@@ -180,8 +180,8 @@ style = "bg:color_aqua fg:color_fg0"
 
 [time]
 disabled = false
-format = '[$time]'
-time_format = "%R"
+format = 'at [$time]($style)'
+time_format = "%H:%M"
 style = "fg:color_purple"
 
 [fill]
