@@ -139,15 +139,6 @@ modules:
       - 00-debloat-gnome.sh
 
   # =========================================================================
-  # 6b. DISABLE UNNEEDED SERVICES — reduce RAM usage by disabling services
-  #     most users don't need (bluetooth, tracker, printing, etc.).
-  #     Users can re-enable via ujust commands.
-  # =========================================================================
-  - type: script
-    scripts:
-      - disable-unneeded-services.sh
-
-  # =========================================================================
   # 7. MINIMAL APPLICATION SET — the only GUI apps in the image
   #    nautilus:           file manager (the one GNOME app the user wants)
   #    blackbox-terminal:  terminal emulator (replaces ptyxis/gnome-terminal)
