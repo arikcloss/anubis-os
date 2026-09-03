@@ -218,8 +218,6 @@ modules:
         notify: true
         repo:
           url: https://dl.flathub.org/repo/flathub.flatpakrepo
-        install:
-          - io.github.kolunmi.Bazaar
 
   # =========================================================================
   # 11. HOMEBREW — the brew-oci layer
