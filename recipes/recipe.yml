@@ -139,12 +139,25 @@ modules:
       - 00-debloat-gnome.sh
 
   # =========================================================================
+  # 6b. DISABLE UNNEEDED SERVICES — reduce RAM usage by disabling services
+  #     most users don't need (bluetooth, tracker, printing, etc.).
+  #     Users can re-enable via ujust commands.
+  # =========================================================================
+  - type: script
+    scripts:
+      - disable-unneeded-services.sh
+
+  # =========================================================================
   # 7. MINIMAL APPLICATION SET — the only GUI apps in the image
   #    nautilus:           file manager (the one GNOME app the user wants)
   #    blackbox-terminal:  terminal emulator (replaces ptyxis/gnome-terminal)
   #    firefox:            web browser (the only browser, no Brave/Chrome)
   #    htop:               process monitor (replaces gnome-system-monitor)
   #    fastfetch:          system info on terminal open (branding)
+  #    just:               command runner (for ujust compatibility)
+  #    nodejs:             JavaScript runtime
+  #    git:                version control
+  #    git-lfs:            git large file storage
   #    topgrade is NOT installed — updates go through `ujust update-all`.
   # =========================================================================
   - type: rpm-ostree
@@ -155,6 +168,10 @@ modules:
       - htop
       - fastfetch
       - libreoffice
+      - just
+      - nodejs
+      - git
+      - git-lfs
 
   # =========================================================================
   # 8. CYBERSECURITY TOOLKIT — lean, defensive + network analysis

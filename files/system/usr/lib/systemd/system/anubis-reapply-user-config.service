@@ -1,0 +1,12 @@
+[Unit]
+Description=Anubis OS: re-apply user config on deployment change
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/lib/anubis-os/first-boot/reapply-user-config.sh
+RemainAfterExit=true
+
+[Install]
+WantedBy=multi-user.target

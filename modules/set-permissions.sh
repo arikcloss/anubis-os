@@ -37,11 +37,13 @@ safe_chmod 644 /etc/sysctl.d/80-anubis-hardening.conf
 safe_chmod 755 /usr/share/anubis-os/scripts/anubis-pick-wallpaper.sh
 safe_chmod 755 /usr/share/anubis-os/scripts/setup-ohmybash-user.sh
 safe_chmod 755 /usr/lib/anubis-os/first-boot/install-fastfetch-config.sh
+safe_chmod 755 /usr/lib/anubis-os/first-boot/reapply-user-config.sh
 
 # --- systemd unit files ----------------------------------------------------
 safe_chmod 644 /usr/lib/systemd/system/anubis-first-boot-wallpaper.service
 safe_chmod 644 /usr/lib/systemd/system/anubis-setup-user.service
 safe_chmod 644 /usr/lib/systemd/system/anubis-fastfetch-firstboot.service
+safe_chmod 644 /usr/lib/systemd/system/anubis-reapply-user-config.service
 
 # --- Wallpapers ------------------------------------------------------------
 if [[ -d /usr/share/backgrounds/anubis-os ]]; then

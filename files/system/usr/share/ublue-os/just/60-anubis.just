@@ -114,6 +114,155 @@ disable-hardened-profile:
     sudo systemctl disable --now opensnitch 2>/dev/null || true
     echo "✓ Done. Reboot required: systemctl reboot"
 
+# -----------------------------------------------------------------------------
+# Services (enable/disable optional services)
+# -----------------------------------------------------------------------------
+
+[group('Services')]
+enable-bluetooth:
+    #!/usr/bin/env bash
+    set -e
+    echo "Enabling Bluetooth..."
+    sudo systemctl unmask bluetooth.service 2>/dev/null || true
+    sudo systemctl enable --now bluetooth.service
+    sudo systemctl enable --now bluetooth.target 2>/dev/null || true
+    echo "✓ Bluetooth enabled. You may need to restart your session."
+
+[group('Services')]
+disable-bluetooth:
+    #!/usr/bin/env bash
+    set -e
+    echo "Disabling Bluetooth..."
+    sudo systemctl disable --now bluetooth.service 2>/dev/null || true
+    sudo systemctl disable --now bluetooth.target 2>/dev/null || true
+    sudo systemctl mask bluetooth.service 2>/dev/null || true
+    echo "✓ Bluetooth disabled."
+
+[group('Services')]
+enable-printing:
+    #!/usr/bin/env bash
+    set -e
+    echo "Enabling printing (CUPS)..."
+    sudo systemctl unmask cups.service 2>/dev/null || true
+    sudo systemctl unmask cups-browsed.service 2>/dev/null || true
+    sudo systemctl enable --now cups.service
+    sudo systemctl enable --now cups-browsed.service 2>/dev/null || true
+    echo "✓ Printing enabled."
+
+[group('Services')]
+disable-printing:
+    #!/usr/bin/env bash
+    set -e
+    echo "Disabling printing (CUPS)..."
+    sudo systemctl disable --now cups.service 2>/dev/null || true
+    sudo systemctl disable --now cups-browsed.service 2>/dev/null || true
+    sudo systemctl mask cups.service 2>/dev/null || true
+    sudo systemctl mask cups-browsed.service 2>/dev/null || true
+    echo "✓ Printing disabled."
+
+[group('Services')]
+enable-tracker:
+    #!/usr/bin/env bash
+    set -e
+    echo "Enabling Tracker file indexing (may increase RAM usage)..."
+    sudo systemctl unmask tracker-miner-fs-3.service 2>/dev/null || true
+    sudo systemctl unmask tracker-extract-3.service 2>/dev/null || true
+    sudo systemctl enable --now tracker-miner-fs-3.service 2>/dev/null || true
+    sudo systemctl enable --now tracker-extract-3.service 2>/dev/null || true
+    echo "✓ Tracker enabled. Indexing will start in background."
+
+[group('Services')]
+disable-tracker:
+    #!/usr/bin/env bash
+    set -e
+    echo "Disabling Tracker file indexing..."
+    sudo systemctl disable --now tracker-miner-fs-3.service 2>/dev/null || true
+    sudo systemctl disable --now tracker-extract-3.service 2>/dev/null || true
+    sudo systemctl mask tracker-miner-fs-3.service 2>/dev/null || true
+    sudo systemctl mask tracker-extract-3.service 2>/dev/null || true
+    echo "✓ Tracker disabled."
+
+[group('Services')]
+enable-avahi:
+    #!/usr/bin/env bash
+    set -e
+    echo "Enabling Avahi (mDNS/Bonjour)..."
+    sudo systemctl enable --now avahi-daemon.service
+    echo "✓ Avahi enabled."
+
+[group('Services')]
+disable-avahi:
+    #!/usr/bin/env bash
+    set -e
+    echo "Disabling Avahi (mDNS/Bonjour)..."
+    sudo systemctl disable --now avahi-daemon.service
+    echo "✓ Avahi disabled."
+
+[group('Services')]
+enable-geoclue:
+    #!/usr/bin/env bash
+    set -e
+    echo "Enabling Geoclue (location services)..."
+    sudo systemctl enable --now geoclue.service
+    echo "✓ Geoclue enabled."
+
+[group('Services')]
+disable-geoclue:
+    #!/usr/bin/env bash
+    set -e
+    echo "Disabling Geoclue (location services)..."
+    sudo systemctl disable --now geoclue.service
+    echo "✓ Geoclue disabled."
+
+[group('Services')]
+enable-modemmanager:
+    #!/usr/bin/env bash
+    set -e
+    echo "Enabling ModemManager (cellular modem support)..."
+    sudo systemctl enable --now ModemManager.service
+    echo "✓ ModemManager enabled."
+
+[group('Services')]
+disable-modemmanager:
+    #!/usr/bin/env bash
+    set -e
+    echo "Disabling ModemManager..."
+    sudo systemctl disable --now ModemManager.service
+    echo "✓ ModemManager disabled."
+
+[group('Services')]
+enable-fprintd:
+    #!/usr/bin/env bash
+    set -e
+    echo "Enabling fprintd (fingerprint reader)..."
+    sudo systemctl enable --now fprintd.service
+    echo "✓ fprintd enabled."
+
+[group('Services')]
+disable-fprintd:
+    #!/usr/bin/env bash
+    set -e
+    echo "Disabling fprintd..."
+    sudo systemctl disable --now fprintd.service
+    echo "✓ fprintd disabled."
+
+[group('Services')]
+list-services:
+    #!/usr/bin/env bash
+    echo "=== anubis-os optional services ==="
+    echo ""
+    for svc in bluetooth.service cups.service tracker-miner-fs-3.service avahi-daemon.service geoclue.service ModemManager.service fprintd.service; do
+        STATUS=$(systemctl is-active "$svc" 2>/dev/null || echo "inactive")
+        ENABLED=$(systemctl is-enabled "$svc" 2>/dev/null || echo "disabled")
+        printf "  %-30s  active: %-8s  enabled: %s\n" "$svc" "$STATUS" "$ENABLED"
+    done
+    echo ""
+    echo "Use 'ujust enable-<service>' or 'ujust disable-<service>' to toggle."
+
+# -----------------------------------------------------------------------------
+# Cybersecurity toolkit (pentesting — opt-in, runs in a container)
+# -----------------------------------------------------------------------------
+
 [group('Security')]
 run-aide-check:
     sudo aide --check

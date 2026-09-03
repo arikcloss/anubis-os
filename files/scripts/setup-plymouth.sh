@@ -86,6 +86,25 @@ if ! command -v plymouth-set-default-theme &>/dev/null; then
     exit 1
 fi
 
+# On ostree systems, we need to ensure the theme is embedded in initramfs.
+# plymouth-set-default-theme -R should do this, but it can fail silently.
+# We also explicitly add the theme to dracut's module list.
 plymouth-set-default-theme -R anubis
 
+# Force dracut to regenerate initramfs for ALL installed kernels with plymouth theme.
+# This ensures the theme works on cold boot, not just restart.
+if command -v dracut &>/dev/null; then
+    echo "[setup-plymouth] Regenerating initramfs for all kernels with plymouth theme..."
+    KERNEL_VERSIONS=$(ls /usr/lib/modules/ 2>/dev/null | sort -V)
+    for kver in $KERNEL_VERSIONS; do
+        if [[ -f "/usr/lib/modules/$kver/vmlinuz" ]] || [[ -f "/boot/vmlinuz-$kver" ]]; then
+            echo "  Regenerating initramfs for kernel: $kver"
+            dracut --force --kver "$kver" --add plymouth || echo "  WARNING: dracut failed for $kver (non-fatal)"
+        fi
+    done
+fi
+
+# Verify the theme was actually applied
+CURRENT_THEME=$(plymouth-set-default-theme 2>/dev/null || echo "unknown")
+echo "[setup-plymouth] Active plymouth theme: $CURRENT_THEME"
 echo "[setup-plymouth] Done. Theme 'anubis' applied and initramfs rebuilt."

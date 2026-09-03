@@ -24,6 +24,7 @@ SERVICES=(
     anubis-first-boot-wallpaper.service
     anubis-setup-user.service
     anubis-fastfetch-firstboot.service
+    anubis-reapply-user-config.service
 )
 
 for svc in "${SERVICES[@]}"; do
