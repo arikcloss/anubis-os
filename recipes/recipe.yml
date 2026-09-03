@@ -194,6 +194,35 @@ modules:
       - python3-pip
 
   # =========================================================================
+  # 8b. VIRTUALIZATION — libvirtd + QEMU/KVM for virtual machines
+  #     Full libvirt stack baked into /usr so VMs work OFFLINE, no first-boot
+  #     download. Enables the libvirtd systemd service so `virsh` and
+  #     Virt-Manager are ready to create/manage VMs on a normal boot.
+  #     Packages:
+  #     libvirt:        libvirtd daemon + client (virsh)
+  #     virt-install:   CLI to provision VMs from the command line
+  #     virt-manager:   GTK GUI to create/manage VMs
+  #     qemu-kvm:       QEMU backend (KVM) that libvirtd drives
+  #     edk2-ovmf:      UEFI firmware for modern guest OS booting
+  #     NOTE: default NAT network is started/autostarted at first use via
+  #     `virsh net-start default` (stored in /etc so it persists), so the
+  #     base image stays predictable. The libvirt group (polkit) lets any
+  #     member manage the daemon without a root password.
+  # =========================================================================
+  - type: rpm-ostree
+    install:
+      - libvirt
+      - virt-install
+      - virt-manager
+      - qemu-kvm
+      - edk2-ovmf
+
+  - type: script
+    snippets:
+      - systemctl enable libvirtd.service
+      - systemctl enable libvirtd.socket || true
+
+  # =========================================================================
   # 9. GNOME SHELL EXTENSIONS — minimal, high-value set
   #    Dash to Dock:      persistent dock (usability — GNOME without it is
   #                       a fullscreen app grid by default)
