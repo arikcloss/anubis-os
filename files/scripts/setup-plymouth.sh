@@ -80,31 +80,62 @@ fun display_password_callback(prompt, bullets) {
 Plymouth.SetDisplayPasswordFunction(display_password_callback);
 SCRIPT
 
-# Apply theme and rebuild initramfs
+# =============================================================================
+# CONFIGURAÇÃO DE TEMA (OSTree / Fedora Atomic Fix)
+# =============================================================================
+
 if ! command -v plymouth-set-default-theme &>/dev/null; then
     echo "ERROR: plymouth-set-default-theme not found — is the 'plymouth' package installed?" >&2
     exit 1
 fi
 
-# On ostree systems, we need to ensure the theme is embedded in initramfs.
-# plymouth-set-default-theme -R should do this, but it can fail silently.
-# We also explicitly add the theme to dracut's module list.
-plymouth-set-default-theme -R anubis
+echo "[setup-plymouth] Setting system-wide default Plymouth theme..."
 
-# Force dracut to regenerate initramfs for ALL installed kernels with plymouth theme.
-# This ensures the theme works on cold boot, not just restart.
+# 1. Configura fallback global imutável do OSTree (/usr/share)
+if [[ -f /usr/share/plymouth/plymouthd.defaults ]]; then
+    sed -i 's/^Theme=.*/Theme=anubis/' /usr/share/plymouth/plymouthd.defaults
+else
+    cat > /usr/share/plymouth/plymouthd.defaults << 'EOF'
+[Daemon]
+Theme=anubis
+ShowDelay=0
+DeviceTimeout=8
+EOF
+fi
+
+# 2. Define o tema no runtime (/etc)
+plymouth-set-default-theme anubis
+
+# 3. Força a inclusão do tema e do módulo 'script' na configuração do Dracut
+mkdir -p /etc/dracut.conf.d/
+cat > /etc/dracut.conf.d/99-anubis-plymouth.conf << 'EOF'
+add_dracutmodules+=" plymouth "
+plymouthd_theme="anubis"
+EOF
+
+# =============================================================================
+# GERAÇÃO DO INITRAMFS
+# =============================================================================
+
 if command -v dracut &>/dev/null; then
-    echo "[setup-plymouth] Regenerating initramfs for all kernels with plymouth theme..."
+    echo "[setup-plymouth] Regenerating initramfs for all kernels..."
     KERNEL_VERSIONS=$(ls /usr/lib/modules/ 2>/dev/null | sort -V)
+    
     for kver in $KERNEL_VERSIONS; do
         if [[ -f "/usr/lib/modules/$kver/vmlinuz" ]] || [[ -f "/boot/vmlinuz-$kver" ]]; then
             echo "  Regenerating initramfs for kernel: $kver"
-            dracut --force --kver "$kver" --add plymouth || echo "  WARNING: dracut failed for $kver (non-fatal)"
+            
+            # --include garante a cópia dos assets do anubis para dentro do initramfs
+            dracut --force \
+                   --kver "$kver" \
+                   --add "plymouth" \
+                   --include "$THEME_DIR" "$THEME_DIR" \
+                   || echo "  WARNING: dracut failed for $kver (non-fatal)"
         fi
     done
 fi
 
-# Verify the theme was actually applied
+# Validação final
 CURRENT_THEME=$(plymouth-set-default-theme 2>/dev/null || echo "unknown")
 echo "[setup-plymouth] Active plymouth theme: $CURRENT_THEME"
-echo "[setup-plymouth] Done. Theme 'anubis' applied and initramfs rebuilt."
+echo "[setup-plymouth] Done. Theme 'anubis' applied and initramfs rebuilt successfully."
