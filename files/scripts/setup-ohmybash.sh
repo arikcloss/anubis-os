@@ -180,8 +180,9 @@ style = "bg:color_aqua fg:color_fg0"
 
 [time]
 disabled = false
-format = '[$time] '
-time_format = "%H:%M"
+format = '[$time]'
+time_format = "%R"
+style = "fg:color_purple"
 
 [fill]
 symbol = ' '
