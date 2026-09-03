@@ -20,7 +20,7 @@ jobs:
 
       - name: Cache BlueBuild CLI
         id: bluebuild-cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: /usr/bin/bluebuild
           key: bluebuild-cli-v0.9.37
