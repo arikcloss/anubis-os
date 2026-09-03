@@ -45,15 +45,15 @@ ImageFile=/usr/share/plymouth/themes/anubis/anubis-logo.png
 SpinnerColor=0xffffff
 PLYMOUTH
 
-# Also update the base spinner theme config for consistency
-# (this ensures the spinner theme itself has our colors as fallback)
+# Also update the base spinner theme config for consistency if it exists
 if [[ -f "$THEME_DIR/spinner.plymouth" ]]; then
-    # Backup original
     cp "$THEME_DIR/spinner.plymouth" "$THEME_DIR/spinner.plymouth.bak" 2>/dev/null || true
-    # Update spinner theme colors to Anubis purple
     sed -i 's/^BackgroundStartColor=.*/BackgroundStartColor=0x1c0f3b/' "$THEME_DIR/spinner.plymouth" 2>/dev/null || true
     sed -i 's/^BackgroundEndColor=.*/BackgroundEndColor=0x0a0514/' "$THEME_DIR/spinner.plymouth" 2>/dev/null || true
     sed -i 's/^SpinnerColor=.*/SpinnerColor=0xffffff/' "$THEME_DIR/spinner.plymouth" 2>/dev/null || true
+else
+    echo "  WARNING: Base spinner theme not found at $THEME_DIR/spinner.plymouth" >&2
+    echo "  This is expected if plymouth package doesn't include spinner theme yet." >&2
 fi
 
 # =============================================================================
@@ -80,11 +80,12 @@ EOF
 fi
 
 # 2. Define o tema no runtime (/etc)
-plymouth-set-default-theme anubis
+plymouth-set-default-theme anubis || {
+    echo "WARNING: plymouth-set-default-theme failed, trying with -R" >&2
+    plymouth-set-default-theme -R anubis || true
+}
 
 # 3. Força a inclusão do tema e do módulo 'spinner' na configuração do Dracut
-#    Isso persiste na imagem final e evita que futuros dracut rebuilds usem
-#    o tema stock do Fedora.
 mkdir -p /etc/dracut.conf.d/
 cat > /etc/dracut.conf.d/99-anubis-plymouth.conf << 'EOF'
 add_dracutmodules+=" plymouth "
@@ -116,4 +117,4 @@ fi
 # Validação final
 CURRENT_THEME=$(plymouth-set-default-theme 2>/dev/null || echo "unknown")
 echo "[setup-plymouth] Active plymouth theme: $CURRENT_THEME"
-echo "[setup-plymouth] Done. Theme 'anubis' (patched spinner) applied and initramfs rebuilt."
+echo "[setup-plymouth] Done. Theme 'anubis' (patched spinner) applied and initramfs rebuilt successfully."

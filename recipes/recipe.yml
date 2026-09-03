@@ -223,6 +223,29 @@ modules:
       - systemctl enable libvirtd.socket || true
 
   # =========================================================================
+  # 8c. COCKPIT — Web-based system management (test-drive / live ISO)
+  #     Enables Anaconda Web UI and Cockpit for remote/local administration.
+  #     Accessible at https://localhost:9090 in the live ISO.
+  #     Packages:
+  #     cockpit:           Main Cockpit web console
+  #     cockpit-storaged:  Storage management
+  #     cockpit-podman:    Container management
+  #     cockpit-networkmanager: Network management
+  #     cockpit-system:    System logs, services, accounts
+  # =========================================================================
+  - type: rpm-ostree
+    install:
+      - cockpit
+      - cockpit-storaged
+      - cockpit-podman
+      - cockpit-networkmanager
+      - cockpit-system
+
+  - type: script
+    snippets:
+      - systemctl enable cockpit.socket
+
+  # =========================================================================
   # 9. GNOME SHELL EXTENSIONS — minimal, high-value set
   #    Dash to Dock:      persistent dock (usability — GNOME without it is
   #                       a fullscreen app grid by default)
