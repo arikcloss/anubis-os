@@ -240,6 +240,8 @@ modules:
       - AppIndicator and KStatusNotifierItem Support
       - Blur my Shell
       - Caffeine
+      - Logo Menu
+      - PaperWM
 
   # =========================================================================
   # 10. FLATHUB — remote enabled
