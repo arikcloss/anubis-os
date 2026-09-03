@@ -3,3 +3,6 @@ cosign.private
 /Containerfile
 *.iso
 *.iso-CHECKSUM
+
+# Clover Linux is its own separate git repository (nested) — never track it here.
+/clover-linux/

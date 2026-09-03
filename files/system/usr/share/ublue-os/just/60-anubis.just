@@ -12,65 +12,6 @@
 detect-cpu:
     @echo "Detected CPU:"
     @lscpu | grep "Model name"
-    @echo ""
-    @echo "anubis-os ships the GENERIC CachyOS kernel for broad compatibility."
-    @echo "CPU-tuned variants are available if you need maximum performance:"
-    @echo "  ujust switch-kernel-znver3   (AMD Zen 3: Ryzen 5000, EPYC Milan)"
-    @echo "  ujust switch-kernel-znver4   (AMD Zen 4: Ryzen 7000, EPYC Genoa)"
-    @echo "  ujust switch-kernel-generic  (revert to generic, default)"
-
-# CPU-tuned CachyOS kernels. These override the generic kernel with one
-# compiled with -march=znver3/znver4 for the target microarchitecture.
-# Only switch if your CPU matches — a wrong march = illegal instruction crash.
-
-[group('Performance')]
-switch-kernel-znver3:
-    #!/usr/bin/env bash
-    set -e
-    echo "Switching to CachyOS kernel optimized for AMD Zen 3..."
-    sudo rpm-ostree override remove kernel-cachyos kernel-cachyos-devel 2>/dev/null || true
-    sudo rpm-ostree install kernel-cachyos-znver3 kernel-cachyos-znver3-devel
-    echo "✓ Done. Reboot required: systemctl reboot"
-
-[group('Performance')]
-switch-kernel-znver4:
-    #!/usr/bin/env bash
-    set -e
-    echo "Switching to CachyOS kernel optimized for AMD Zen 4..."
-    sudo rpm-ostree override remove kernel-cachyos kernel-cachyos-devel 2>/dev/null || true
-    sudo rpm-ostree install kernel-cachyos-znver4 kernel-cachyos-znver4-devel
-    echo "✓ Done. Reboot required: systemctl reboot"
-
-[group('Performance')]
-switch-kernel-generic:
-    #!/usr/bin/env bash
-    set -e
-    echo "Switching back to generic CachyOS kernel..."
-    sudo rpm-ostree override remove \
-        kernel-cachyos-znver3 kernel-cachyos-znver3-devel \
-        kernel-cachyos-znver4 kernel-cachyos-znver4-devel 2>/dev/null || true
-    sudo rpm-ostree install kernel-cachyos kernel-cachyos-devel
-    echo "✓ Done. Reboot required: systemctl reboot"
-
-[group('Performance')]
-enable-scx-scheduler:
-    #!/usr/bin/env bash
-    set -e
-    echo "Enabling sched-ext scheduler (scx_bpfland)..."
-    echo "This replaces the CFS scheduler with a BPF-based one that improves"
-    echo "desktop responsiveness under load."
-    sudo systemctl enable --now scx_bpfland 2>/dev/null || \
-        sudo systemctl enable --now scx_lavd 2>/dev/null || \
-        echo "No scx scheduler available — install scx-scheds first"
-    echo "✓ Enabled. Disable with: ujust disable-scx-scheduler"
-
-[group('Performance')]
-disable-scx-scheduler:
-    #!/usr/bin/env bash
-    set -e
-    echo "Disabling sched-ext scheduler (reverting to CFS)..."
-    sudo systemctl disable --now scx_bpfland scx_lavd 2>/dev/null || true
-    echo "✓ Disabled. Reboot for full effect."
 
 [group('Performance')]
 set-tuned-profile:
@@ -92,13 +33,14 @@ enable-hardened-profile:
     set -e
     echo "Enabling aggressive security hardening profile..."
     echo "  • Kernel mitigations + disable SMT (hyperthreading)"
-    echo "  • OpenSnitch application firewall"
+    echo "  • OpenSnitch application firewall (if installed)"
     echo "  • ClamAV + freshclam"
     echo "  • AIDE file integrity baseline"
     echo "  • firewalld"
     echo ""
     sudo rpm-ostree kargs --append=mitigations=auto,nosmt
-    sudo systemctl enable --now opensnitch
+    # OpenSnitch isn't installed in the base; only enable it if present.
+    sudo systemctl enable --now opensnitch 2>/dev/null || echo "  (OpenSnitch not installed — skipping; install via 'dnf install opensnitch')"
     sudo systemctl enable --now clamav-freshclam.timer
     sudo systemctl enable --now firewalld
     sudo aide --init
@@ -300,14 +242,16 @@ install-pentest-tools:
         exit 0
     fi
     distrobox create --name anubis-pentest --image fedora:latest --yes || true
+    # Install packages one at a time so a package that isn't in Fedora's repos
+    # (e.g. metasploit) doesn't abort the whole install. Only Fedora-available
+    # packages are attempted.
     distrobox enter --name anubis-pentest -- bash -c '
-        sudo dnf install -y \
-            nmap nmap-ncat wireshark tcpdump \
-            metasploit-framework hashcat john \
-            hydra sqlmap nikto gobuster \
-            dirb dirbuster ffuf \
-            python3-pip git vim \
-            && echo "✓ Pentest toolkit installed in container anubis-pentest"
+        pkgs="nmap nmap-ncat wireshark-cli tcpdump hashcat john hydra sqlmap nikto gobuster python3-pip git vim"
+        for p in $pkgs; do
+            sudo dnf install -y "$p" 2>/dev/null && echo "  ✓ $p" || echo "  ⊘ $p skipped (not in Fedora repos)"
+        done
+        echo "✓ Pentest toolkit (Fedora-available subset) installed in container anubis-pentest"
+        echo "  NOTE: metasploit-framework is not in Fedora repos — install it via the distrobox wrapper."
     '
     echo ""
     echo "To enter the pentest environment: distrobox enter anubis-pentest"
@@ -335,8 +279,13 @@ install-facetimehd-webcam:
     echo "Installing FaceTime HD webcam driver (MacBook 2013-2017)..."
     echo "Requires COPR repo: dani/facetimehd"
     echo ""
-    sudo rpm-ostree install \
-      https://copr.fedorainfracloud.org/coprs/dani/facetimehd/repo/fedora-$(rpm -E %fedora)/dani-facetimehd-fedora-$(rpm -E %fedora).repo
+    # Add the COPR repo file to /etc/yum.repos.d/, then install the packages.
+    # (rpm-ostree install does NOT accept a repo URL — the .repo file must be
+    # dropped into place first.)
+    VER=$(rpm -E %fedora)
+    sudo curl -fsSL \
+      "https://copr.fedorainfracloud.org/coprs/dani/facetimehd/repo/fedora-${VER}/dani-facetimehd-fedora-${VER}.repo" \
+      -o "/etc/yum.repos.d/dani-facetimehd-fedora-${VER}.repo"
     sudo rpm-ostree install akmod-facetimehd facetimehd-firmware
     echo ""
     echo "✓ Installed. Reboot required: systemctl reboot"

@@ -41,9 +41,9 @@ if [[ -n "$USER_NAME" ]]; then
     # Check if user has an active session
     if [[ -S "/run/user/${USER_ID}/bus" ]]; then
         export DBUS_SESSION_BUS_ADDRESS="$DBUS_ADDR"
-        sudo -u "$USER_NAME" gsettings set org.gnome.desktop.background picture-uri      "$URI" || true
-        sudo -u "$USER_NAME" gsettings set org.gnome.desktop.background picture-uri-dark "$URI" || true
-        sudo -u "$USER_NAME" gsettings set org.gnome.desktop.background picture-options  'zoom'  || true
+        runuser -u "$USER_NAME" -- gsettings set org.gnome.desktop.background picture-uri      "$URI" || true
+        runuser -u "$USER_NAME" -- gsettings set org.gnome.desktop.background picture-uri-dark "$URI" || true
+        runuser -u "$USER_NAME" -- gsettings set org.gnome.desktop.background picture-options  'zoom'  || true
         echo "  Applied wallpaper for user: $USER_NAME"
     else
         echo "  User $USER_NAME has no active D-Bus session; wallpaper will apply on next login"

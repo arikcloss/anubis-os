@@ -46,8 +46,6 @@ PACKAGES_TO_REMOVE=(
     gnome-boxes
     gnome-logs
     gnome-system-monitor  # replaced by htop
-    gnome-calculator
-    gnome-text-editor     # user can install via flatpak if needed
     gnome-tour
     gnome-user-docs
     gnome-user-share

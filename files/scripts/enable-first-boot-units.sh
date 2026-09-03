@@ -12,6 +12,8 @@
 #   • anubis-setup-user.service            — installs Oh My Bash + Starship
 #   • anubis-fastfetch-firstboot.service   — seeds fastfetch config for
 #                                            existing users on first boot
+#   • anubis-reapply-user-config.service   — re-applies user config on updates
+#   • anubis-flatpak-preinstall.service    — installs GNOME Circle Flatpaks
 #
 # IDEMPOTENT: `systemctl enable` is a no-op if already enabled.
 # =============================================================================
@@ -24,6 +26,8 @@ SERVICES=(
     anubis-first-boot-wallpaper.service
     anubis-setup-user.service
     anubis-fastfetch-firstboot.service
+    anubis-reapply-user-config.service
+    anubis-flatpak-preinstall.service
 )
 
 for svc in "${SERVICES[@]}"; do

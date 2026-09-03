@@ -1,0 +1,40 @@
+# Anubis OS — GNOME Circle / productivity Flatpaks (no Fedora RPM).
+#
+# These are read by `flatpak preinstall` (Fedora 44+). At first boot the
+# anubis-flatpak-preinstall.service runs `flatpak preinstall --system`, which
+# installs the apps listed here automatically once network is available.
+# They are NOT removed by the debloat step.
+#
+# NOTE: In an rpm-ostree/OSTree image, /var/lib/flatpak is stateful and is NOT
+# committed into the image, so these could not be baked in fully offline. This
+# first-boot service is the upstream-approved mechanism (used by ublue Aurora).
+
+[Flatpak Preinstall io.missioncenter.MissionCenter]
+Branch=stable
+
+[Flatpak Preinstall de.haeckerfelix.gradio]
+Branch=stable
+
+[Flatpak Preinstall com.github.hugolabe.Wike]
+Branch=stable
+
+[Flatpak Preinstall io.github.kolunmi.Bazaar]
+Branch=stable
+
+[Flatpak Preinstall io.bassi.Amberol]
+Branch=stable
+
+[Flatpak Preinstall md.obsidian.Obsidian]
+Branch=stable
+
+[Flatpak Preinstall com.vscodium.codium]
+Branch=stable
+
+[Flatpak Preinstall com.github.finefindus.eyedropper]
+Branch=stable
+
+[Flatpak Preinstall de.haeckerfelix.fragments]
+Branch=stable
+
+[Flatpak Preinstall com.github.lainsce.iotas]
+Branch=stable

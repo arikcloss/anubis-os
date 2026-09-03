@@ -2,12 +2,12 @@
 # anubis-os — recipe.yml (main image)
 # =============================================================================
 # The cleanest possible Fedora 44 Silverblue base, tuned for performance on
-# old, new, and modest hardware. Like CachyOS, but GNOME.
+# old, new, and modest hardware.
 #
 # Design principles:
 #   1. MINIMAL  — only Nautilus, Blackbox-terminal, Firefox, Htop, Bazaar,
 #                 Brew, and a lean cybersecurity toolkit. Nothing else.
-#   2. FAST     — CachyOS kernel + scx schedulers + tuned + zram + irqbalance.
+#   2. FAST     — tuned + zram + irqbalance.
 #   3. STABLE   — every script is idempotent, fault-tolerant, and logged.
 #   4. HARMONIOUS — the container image and the ISO share the exact same recipe,
 #                 so what you test in the container is what boots from the ISO.
@@ -16,7 +16,7 @@
 # =============================================================================
 
 name: anubis-os
-description: Minimal, performance-tuned immutable Fedora 44 (Silverblue) with GNOME. CachyOS kernel, lean cybersecurity toolkit, Brew, and nothing you don't need.
+description: Minimal, performance-tuned immutable Fedora 44 (Silverblue) with GNOME. Lean cybersecurity toolkit, Brew, and nothing you don't need.
 base-image: ghcr.io/ublue-os/silverblue-main
 image-version: "44"
 
@@ -66,24 +66,6 @@ modules:
       - gstreamer1-plugins-ugly-free
       - gstreamer1-plugins-good
       - gstreamer1-plugin-libav
-
-  # =========================================================================
-  # 3. CACHYOS KERNEL — the performance foundation
-  #    Generic build for broad compatibility (1st-gen Intel Core through
-  #    current). CPU-tuned variants (znver3/znver4) are opt-in via ujust.
-  #    scx-scheds provides sched-ext schedulers (scx_lavd, scx_bpfland) that
-  #    dramatically improve desktop/gaming responsiveness. The stock Fedora
-  #    kernel has sched-ext support since 6.12; the CachyOS kernel has it
-  #    built-in and enabled by default.
-  # =========================================================================
-  - type: rpm-ostree
-    repos:
-      - https://copr.fedorainfracloud.org/coprs/bieszczaders/kernel-cachyos/repo/fedora-%OS_VERSION%/bieszczaders-kernel-cachyos-fedora-%OS_VERSION%.repo
-      - https://copr.fedorainfracloud.org/coprs/bieszczaders/kernel-cachyos-addons/repo/fedora-%OS_VERSION%/bieszczaders-kernel-cachyos-addons-fedora-%OS_VERSION%.repo
-    install:
-      - kernel-cachyos
-      - kernel-cachyos-devel
-      - scx-scheds
 
   # =========================================================================
   # 4. HARDWARE ENABLEMENT
@@ -139,17 +121,27 @@ modules:
       - 00-debloat-gnome.sh
 
   # =========================================================================
-  # 7. MINIMAL APPLICATION SET — the only GUI apps in the image
-  #    nautilus:           file manager (the one GNOME app the user wants)
-  #    blackbox-terminal:  terminal emulator (replaces ptyxis/gnome-terminal)
-  #    firefox:            web browser (the only browser, no Brave/Chrome)
-  #    htop:               process monitor (replaces gnome-system-monitor)
+  # 7. MINIMAL APPLICATION SET — a usable, lean GTK4 base
+  #    Core apps (all available as Fedora RPMs so they work OFFLINE, baked
+  #    straight into /usr — no Flatpak, no first-boot download):
+  #    nautilus:           file manager
+  #    blackbox-terminal:  terminal emulator
+  #    firefox:            web browser
+  #    htop:               process monitor
+  #    gnome-text-editor:  GTK4 text editor
+  #    gnome-console:      GTK4 terminal (kgx)
+  #    gnome-calculator:   GTK4 calculator
+  #    file-roller:        archive manager
+  #    libreoffice:        office suite
   #    fastfetch:          system info on terminal open (branding)
   #    just:               command runner (for ujust compatibility)
   #    nodejs:             JavaScript runtime
-  #    git:                version control
-  #    git-lfs:            git large file storage
-  #    topgrade is NOT installed — updates go through `ujust update-all`.
+  #    git / git-lfs:      version control
+  #    jq:                 JSON processor (used by first-boot scripts)
+  #
+  #    NOTE: GNOME Circle apps (Mission Center, Gradio, Wike, Amberol, etc.)
+  #    have NO Fedora RPM, so they ship as Flatpaks via flatpak preinstall
+  #    (see step 8b) and appear right after first boot when network is up.
   # =========================================================================
   - type: rpm-ostree
     install:
@@ -157,12 +149,17 @@ modules:
       - blackbox-terminal
       - firefox
       - htop
-      - fastfetch
+      - gnome-text-editor
+      - gnome-console
+      - gnome-calculator
+      - file-roller
       - libreoffice
+      - fastfetch
       - just
       - nodejs
       - git
       - git-lfs
+      - jq
 
   # =========================================================================
   # 8. CYBERSECURITY TOOLKIT — lean, defensive + network analysis
@@ -216,9 +213,13 @@ modules:
       - Caffeine
 
   # =========================================================================
-  # 10. FLATHUB — remote enabled, Bazaar pre-installed
-  #     Bazaar (io.github.kolunmi.Bazaar) is the only Flatpak baked in —
-  #     it's the Flatpak manager the user wants. Everything else is opt-in.
+  # 10. FLATHUB — remote enabled
+  #     Ensures the system Flathub remote is present. The GNOME Circle /
+  #     productivity Flatpaks (Mission Center, Gradio, Wike, Bazaar, Amberol,
+  #     Obsidian, VSCodium, Eyedropper, Fragments, Iotas) ship as static
+  #     declarations in /usr/share/flatpak/preinstall.d/ and are installed
+  #     automatically on first boot by anubis-flatpak-preinstall.service
+  #     (already enabled in the POST-INSTALL step). They have no Fedora RPM.
   # =========================================================================
   - type: default-flatpaks
     configurations:

@@ -86,7 +86,7 @@ while IFS=: read -r _user _pass uid _gid _gecos home _shell; do
 
     if [[ -S "/run/user/${USER_ID}/bus" ]]; then
         export DBUS_SESSION_BUS_ADDRESS="$DBUS_ADDR"
-        CURRENT_URI=$(sudo -u "$_user" gsettings get org.gnome.desktop.background picture-uri 2>/dev/null | tr -d "'" || echo "")
+        CURRENT_URI=$(runuser -u "$_user" -- gsettings get org.gnome.desktop.background picture-uri 2>/dev/null | tr -d "'" || echo "")
         # If wallpaper is not set or is the old default, re-apply
         if [[ -z "$CURRENT_URI" ]] || [[ "$CURRENT_URI" == "file:///usr/share/backgrounds/gnome/"* ]] || [[ "$CURRENT_URI" == "file:///usr/share/backgrounds/f"* ]]; then
             WALLPAPER_DIR=/usr/share/backgrounds/anubis-os
@@ -94,9 +94,9 @@ while IFS=: read -r _user _pass uid _gid _gecos home _shell; do
             if [[ ${#WALLPAPERS[@]} -gt 0 ]]; then
                 PICK="${WALLPAPERS[RANDOM % ${#WALLPAPERS[@]}]}"
                 URI="file://$PICK"
-                sudo -u "$_user" gsettings set org.gnome.desktop.background picture-uri      "$URI" 2>/dev/null || true
-                sudo -u "$_user" gsettings set org.gnome.desktop.background picture-uri-dark "$URI" 2>/dev/null || true
-                sudo -u "$_user" gsettings set org.gnome.desktop.background picture-options  'zoom' 2>/dev/null || true
+                runuser -u "$_user" -- gsettings set org.gnome.desktop.background picture-uri      "$URI" 2>/dev/null || true
+                runuser -u "$_user" -- gsettings set org.gnome.desktop.background picture-uri-dark "$URI" 2>/dev/null || true
+                runuser -u "$_user" -- gsettings set org.gnome.desktop.background picture-options  'zoom' 2>/dev/null || true
                 echo "    Applied new wallpaper: $PICK"
             fi
         fi
