@@ -2,10 +2,9 @@
 # =============================================================================
 # setup-plymouth.sh — Anubis OS
 # =============================================================================
-# Configures the Fedora 44+ patched "spinner" plymouth theme with Anubis branding.
-# Uses the upstream spinner theme (no custom script theme) with custom background
-# color and logo via theme configuration. This replaces the old custom script
-# theme approach and ensures compatibility with Fedora's updated plymouth stack.
+# Configures Plymouth boot splash with Anubis branding.
+# Tries Fedora 44+ patched "spinner" theme first; falls back to "script" theme
+# if spinner module is not available in the installed plymouth package.
 # =============================================================================
 set -euo pipefail
 trap 'echo "[setup-plymouth] FAILED at line $LINENO" >&2' ERR
@@ -20,40 +19,99 @@ fi
 THEME_DIR=/usr/share/plymouth/themes/spinner
 ANUBIS_THEME_DIR=/usr/share/plymouth/themes/anubis
 
-echo "[setup-plymouth] Configuring patched spinner theme with Anubis branding..."
+echo "[setup-plymouth] Configuring Plymouth theme with Anubis branding..."
 
-# Create a branded spinner theme directory that extends the base spinner
+# Check if spinner module exists
+USE_SPINNER=false
+if [[ -f /usr/lib64/plymouth/spinner.so ]] || [[ -f /usr/lib/plymouth/spinner.so ]]; then
+    USE_SPINNER=true
+    echo "[setup-plymouth] Spinner module found, using spinner theme"
+else
+    echo "[setup-plymouth] Spinner module NOT found, falling back to script theme"
+fi
+
+# Create branded theme directory
 mkdir -p "$ANUBIS_THEME_DIR"
-
-# Copy logo to theme directory
 install -Dm644 "$SRC_LOGO" "$ANUBIS_THEME_DIR/anubis-logo.png"
 
-# Create theme file that inherits from spinner but with Anubis branding
-cat > "$ANUBIS_THEME_DIR/anubis.plymouth" << 'PLYMOUTH'
+if [[ "$USE_SPINNER" == "true" ]]; then
+    # Spinner theme configuration
+    cat > "$ANUBIS_THEME_DIR/anubis.plymouth" << 'PLYMOUTH'
 [Plymouth Theme]
 Name=Anubis OS
 Description=Anubis OS boot splash (spinner theme)
 ModuleName=spinner
 
 [spinner]
-# Anubis purple gradient background
 BackgroundStartColor=0x1c0f3b
 BackgroundEndColor=0x0a0514
-# Custom logo
 ImageFile=/usr/share/plymouth/themes/anubis/anubis-logo.png
-# Spinner color (white)
 SpinnerColor=0xffffff
 PLYMOUTH
+    THEME_NAME="anubis"
+    MODULE_NAME="spinner"
+else
+    # Script theme configuration (fallback)
+    cat > "$ANUBIS_THEME_DIR/anubis.plymouth" << 'PLYMOUTH'
+[Plymouth Theme]
+Name=Anubis OS
+Description=Anubis OS boot splash (script theme)
+ModuleName=script
 
-# Also update the base spinner theme config for consistency if it exists
+[script]
+ImageDir=/usr/share/plymouth/themes/anubis
+ScriptFile=/usr/share/plymouth/themes/anubis/anubis.script
+PLYMOUTH
+
+    # Script theme: solid dark background, centered logo, smooth fade-in
+    cat > "$ANUBIS_THEME_DIR/anubis.script" << 'SCRIPT'
+Window.SetBackgroundTopColor(0.07, 0.07, 0.09);
+Window.SetBackgroundBottomColor(0.03, 0.03, 0.04);
+
+screen_width  = Window.GetWidth();
+screen_height = Window.GetHeight();
+
+logo_image = Image("anubis-logo.png");
+scale = Math.Min(screen_width, screen_height) * 0.28 / logo_image.GetWidth();
+logo_scaled = logo_image.Scale(
+    logo_image.GetWidth()  * scale,
+    logo_image.GetHeight() * scale
+);
+logo_sprite = Sprite(logo_scaled);
+logo_sprite.SetX(screen_width  / 2 - logo_scaled.GetWidth()  / 2);
+logo_sprite.SetY(screen_height / 2 - logo_scaled.GetHeight() / 2);
+logo_sprite.SetZ(10);
+logo_sprite.SetOpacity(0);
+
+global.t = 0;
+
+fun refresh_callback() {
+    global.t++;
+    if (global.t < 30) {
+        logo_sprite.SetOpacity(global.t / 30);
+    } else {
+        logo_sprite.SetOpacity(1);
+    }
+}
+Plymouth.SetRefreshFunction(refresh_callback);
+
+fun display_password_callback(prompt, bullets) {
+    logo_sprite.SetOpacity(1);
+}
+Plymouth.SetDisplayPasswordFunction(display_password_callback);
+SCRIPT
+    THEME_NAME="anubis"
+    MODULE_NAME="script"
+fi
+
+# Also update the base theme config for consistency if it exists
 if [[ -f "$THEME_DIR/spinner.plymouth" ]]; then
     cp "$THEME_DIR/spinner.plymouth" "$THEME_DIR/spinner.plymouth.bak" 2>/dev/null || true
-    sed -i 's/^BackgroundStartColor=.*/BackgroundStartColor=0x1c0f3b/' "$THEME_DIR/spinner.plymouth" 2>/dev/null || true
-    sed -i 's/^BackgroundEndColor=.*/BackgroundEndColor=0x0a0514/' "$THEME_DIR/spinner.plymouth" 2>/dev/null || true
-    sed -i 's/^SpinnerColor=.*/SpinnerColor=0xffffff/' "$THEME_DIR/spinner.plymouth" 2>/dev/null || true
-else
-    echo "  WARNING: Base spinner theme not found at $THEME_DIR/spinner.plymouth" >&2
-    echo "  This is expected if plymouth package doesn't include spinner theme yet." >&2
+    if [[ "$USE_SPINNER" == "true" ]]; then
+        sed -i 's/^BackgroundStartColor=.*/BackgroundStartColor=0x1c0f3b/' "$THEME_DIR/spinner.plymouth" 2>/dev/null || true
+        sed -i 's/^BackgroundEndColor=.*/BackgroundEndColor=0x0a0514/' "$THEME_DIR/spinner.plymouth" 2>/dev/null || true
+        sed -i 's/^SpinnerColor=.*/SpinnerColor=0xffffff/' "$THEME_DIR/spinner.plymouth" 2>/dev/null || true
+    fi
 fi
 
 # =============================================================================
@@ -65,7 +123,7 @@ if ! command -v plymouth-set-default-theme &>/dev/null; then
     exit 1
 fi
 
-echo "[setup-plymouth] Setting system-wide default Plymouth theme to 'anubis'..."
+echo "[setup-plymouth] Setting system-wide default Plymouth theme to '$THEME_NAME' (module: $MODULE_NAME)..."
 
 # 1. Configura fallback global imutável do OSTree (/usr/share)
 if [[ -f /usr/share/plymouth/plymouthd.defaults ]]; then
@@ -80,14 +138,14 @@ EOF
 fi
 
 # 2. Define o tema no runtime (/etc)
-plymouth-set-default-theme anubis || {
+plymouth-set-default-theme "$THEME_NAME" || {
     echo "WARNING: plymouth-set-default-theme failed, trying with -R" >&2
-    plymouth-set-default-theme -R anubis || true
+    plymouth-set-default-theme -R "$THEME_NAME" || true
 }
 
-# 3. Força a inclusão do tema e do módulo 'spinner' na configuração do Dracut
+# 3. Força a inclusão do tema e do módulo na configuração do Dracut
 mkdir -p /etc/dracut.conf.d/
-cat > /etc/dracut.conf.d/99-anubis-plymouth.conf << 'EOF'
+cat > /etc/dracut.conf.d/99-anubis-plymouth.conf << EOF
 add_dracutmodules+=" plymouth "
 plymouthd_theme="anubis"
 EOF
@@ -104,7 +162,6 @@ if command -v dracut &>/dev/null; then
         if [[ -f "/usr/lib/modules/$kver/vmlinuz" ]] || [[ -f "/boot/vmlinuz-$kver" ]]; then
             echo "  Regenerating initramfs for kernel: $kver"
             
-            # --include garante a cópia dos assets do anubis para dentro do initramfs
             dracut --force \
                    --kver "$kver" \
                    --add "plymouth" \
@@ -116,5 +173,5 @@ fi
 
 # Validação final
 CURRENT_THEME=$(plymouth-set-default-theme 2>/dev/null || echo "unknown")
-echo "[setup-plymouth] Active plymouth theme: $CURRENT_THEME"
-echo "[setup-plymouth] Done. Theme 'anubis' (patched spinner) applied and initramfs rebuilt successfully."
+echo "[setup-plymouth] Active plymouth theme: $CURRENT_THEME (module: $MODULE_NAME)"
+echo "[setup-plymouth] Done. Theme '$THEME_NAME' applied and initramfs rebuilt successfully."
