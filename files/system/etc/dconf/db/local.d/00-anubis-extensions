@@ -15,8 +15,8 @@
 # =============================================================================
 
 [org/gnome/shell]
-# Exactly 4 extensions — matches the `gnome-extensions` module in recipe.yml:
-enabled-extensions=['dash-to-dock@micxgx.gmail.com', 'appindicatorsupport@rgcjonas.gmail.com', 'blur-my-shell@aunetx', 'caffeine@patapon.info']
+# Exactly 6 extensions — matches the `gnome-extensions` module in recipe.yml:
+enabled-extensions=['dash-to-dock@micxgx.gmail.com', 'appindicatorsupport@rgcjonas.gmail.com', 'blur-my-shell@aunetx', 'caffeine@patapon.info', 'logo-menu@aryan_k', 'paperwm@paperwm.github.com']
 disable-user-extensions=false
 
 [org/gnome/desktop/background]
