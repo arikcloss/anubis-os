@@ -50,20 +50,17 @@ while IFS=: read -r _user _pass uid _gid _gecos home _shell; do
     echo "  Processing user: $_user (UID $uid)"
 
     # --- Oh My Bash + Starship ---
-    # Re-run the user setup script if Oh My Bash or Starship is missing
+    # Re-run the user setup script if Oh My Bash is missing
+    # Starship is pre-installed via RPM now
     OH_MY_BASH_DIR="$home/.oh-my-bash"
-    STARSHIP_BIN="$home/.local/bin/starship"
 
     NEED_SETUP=false
     if [[ ! -d "$OH_MY_BASH_DIR" ]]; then
         NEED_SETUP=true
     fi
-    if ! command -v starship &>/dev/null && [[ ! -x "$STARSHIP_BIN" ]]; then
-        NEED_SETUP=true
-    fi
 
     if [[ "$NEED_SETUP" == "true" ]]; then
-        echo "    Setting up Oh My Bash + Starship..."
+        echo "    Setting up Oh My Bash + configs..."
         runuser -u "$_user" -- /usr/share/anubis-os/scripts/setup-ohmybash-user.sh 2>/dev/null || true
     fi
 

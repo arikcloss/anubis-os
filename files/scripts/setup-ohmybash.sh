@@ -26,15 +26,16 @@ echo "[setup-ohmybash] Preparing terminal/shell skeleton..."
 
 # =============================================================================
 # 1. First-boot user setup script
-#    Runs as the real user (not root) to clone Oh My Bash and install
-#    Starship into their home directory. Idempotent: skips if already done.
+#    Runs as the real user (not root) to clone Oh My Bash and set up configs.
+#    Starship is now pre-installed in the base image (RPM).
+#    Idempotent: skips if already done.
 # =============================================================================
 install -Dm755 /dev/stdin \
     /usr/share/anubis-os/scripts/setup-ohmybash-user.sh << 'USERSCRIPT'
 #!/usr/bin/env bash
 set -euo pipefail
 
-echo "[anubis-setup-user] Setting up Oh My Bash and Starship..."
+echo "[anubis-setup-user] Setting up Oh My Bash and configs..."
 
 # --- Oh My Bash ---
 OH_MY_BASH_DIR="$HOME/.oh-my-bash"
@@ -46,18 +47,11 @@ else
     echo "  Oh My Bash already present, skipping clone"
 fi
 
-# --- Starship prompt ---
-if ! command -v starship &>/dev/null && [[ ! -x "$HOME/.local/bin/starship" ]]; then
-    mkdir -p "$HOME/.local/bin"
-    # Download and install Starship to ~/.local/bin (no sudo needed)
-    if curl -fsSL https://starship.rs/install.sh | sh -s -- \
-        --bin-dir "$HOME/.local/bin" --yes; then
-        echo "  Installed Starship to ~/.local/bin/starship"
-    else
-        echo "  WARNING: Starship install failed — user can install later via 'brew install starship'" >&2
-    fi
+# --- Starship prompt (pre-installed via RPM) ---
+if command -v starship &>/dev/null; then
+    echo "  Starship found at $(command -v starship)"
 else
-    echo "  Starship already installed, skipping"
+    echo "  WARNING: Starship not found in PATH — should be pre-installed" >&2
 fi
 
 # --- .bashrc (only if not yet customised by the user) ---
@@ -89,10 +83,42 @@ cat > /etc/skel/.bashrc << 'BASHRC'
 # homes on first boot by anubis-setup-user.service (only if they don't
 # already have a customised .bashrc).
 
+# If not running interactively, don't do anything
+case $- in
+    *i*) ;;
+    *) return ;;
+esac
+
 # --- PATH: include user-local bin (where Starship gets installed) ---
 export PATH="$HOME/.local/bin:$PATH"
 
-# --- Oh My Bash ---
+# --- History settings (Ubuntu/Fedora style) ---
+HISTCONTROL=ignoreboth
+shopt -s histappend
+HISTSIZE=1000
+HISTFILESIZE=2000
+
+# --- Window size check ---
+shopt -s checkwinsize
+
+# --- Make less more friendly for non-text input files ---
+[ -x /usr/bin/lesspipe ] && eval "$(SHELL=/bin/sh lesspipe)"
+
+# --- Color support for ls, grep, etc. ---
+if [ -x /usr/bin/dircolors ]; then
+    test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
+    alias ls='ls --color=auto'
+    alias grep='grep --color=auto'
+    alias fgrep='fgrep --color=auto'
+    alias egrep='egrep --color=auto'
+fi
+
+# --- Useful aliases ---
+alias ll='ls -alF'
+alias la='ls -A'
+alias l='ls -CF'
+
+# --- Oh My Bash (optional, theme overridden by Starship) ---
 export OSH="$HOME/.oh-my-bash"
 if [[ -f "$OSH/oh-my-bash.sh" ]]; then
     OSH_THEME="font"
@@ -142,54 +168,75 @@ cat > /etc/skel/.config/starship.toml << 'STARSHIP'
 "$schema" = 'https://starship.rs/config-schema.json'
 
 format = """
-[░▒▓](color_orange)\
-[ $os ](bg:color_orange fg:color_fg0)\
-[](bg:color_yellow fg:color_orange)\
-[ $directory ](bg:color_yellow fg:color_fg0)\
-[](fg:color_yellow bg:color_aqua)\
-[ $git_branch$git_status ](bg:color_aqua fg:color_fg0)\
-[](fg:color_aqua)\
+[┌─](fg:#8b5cf6)\
+[ $os ](fg:#8b5cf6 bold)\
+[ $directory ](fg:#a78bfa)\
+[ $git_branch$git_status ](fg:#d8b4fe)\
 $fill\
-$cmd_duration\
-[ $time ](fg:color_purple)\
-\n$character"""
-
-palette = 'anubis'
+[ $time ](fg:#6d28d9)\
+\n[└─$ ](fg:#8b5cf6 bold)"""
 
 [palettes.anubis]
 color_fg0 = '#1a0a2e'
-color_orange = '#8b5cf6'
-color_yellow = '#6d28d9'
-color_aqua = '#4c1d95'
-color_purple = '#a78bfa'
+color_purple = '#8b5cf6'
+color_lavender = '#a78bfa'
+color_deep_purple = '#6d28d9'
+color_light_purple = '#d8b4fe'
 
 [os]
 disabled = false
-style = "bg:color_orange fg:color_fg0"
+format = '[ $symbol ](fg:#8b5cf6 bold)'
+symbol = '󰣇'
 
 [directory]
-style = "fg:color_fg0 bg:color_yellow"
+style = "fg:#a78bfa"
 truncation_length = 3
+truncate_to_repo = false
 
 [git_branch]
-symbol = " "
-style = "bg:color_aqua fg:color_fg0"
+symbol = " "
+style = "fg:#d8b4fe"
 
 [git_status]
-style = "bg:color_aqua fg:color_fg0"
+style = "fg:#f87171"
+conflicted = "="
+ahead = "↑"
+behind = "↓"
+diverged = "↕"
+untracked = "?"
+stashed = "$"
+modified = "!"
+deleted = "×"
 
 [time]
 disabled = false
-format = 'at [$time]($style)'
+format = ' [ $time ](fg:#6d28d9)'
 time_format = "%H:%M"
-style = "fg:color_purple"
+style = "fg:#6d28d9"
 
-[fill]
-symbol = ' '
+[cmd_duration]
+disabled = false
+min_time = 2000
+format = ' [ took $duration ](fg:#6d28d9)'
 
 [character]
-success_symbol = '[❯](bold color_purple)'
-error_symbol = '[❯](bold red)'
+success_symbol = '[❯](fg:#8b5cf6 bold)'
+error_symbol = '[❯](fg:#ef4444 bold)'
+vicmd_symbol = '[❮](fg:#f59e0b bold)'
+
+[fill]
+symbol = " "
+
+[username]
+style_user = "fg:#8b5cf6 bold"
+style_root = "fg:#ef4444 bold"
+format = '[$user](fg:#a78bfa)@'
+disabled = false
+
+[hostname]
+ssh_only = true
+format = '[$hostname](fg:#a78bfa) '
+disabled = false
 STARSHIP
 
 echo "  Wrote /etc/skel/.config/starship.toml"

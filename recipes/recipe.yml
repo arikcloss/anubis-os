@@ -120,46 +120,48 @@ modules:
     scripts:
       - 00-debloat-gnome.sh
 
-  # =========================================================================
-  # 7. MINIMAL APPLICATION SET — a usable, lean GTK4 base
-  #    Core apps (all available as Fedora RPMs so they work OFFLINE, baked
-  #    straight into /usr — no Flatpak, no first-boot download):
-  #    nautilus:           file manager
-  #    blackbox-terminal:  terminal emulator
-  #    firefox:            web browser
-  #    htop:               process monitor
-  #    gnome-text-editor:  GTK4 text editor
-  #    gnome-console:      GTK4 terminal (kgx)
-  #    gnome-calculator:   GTK4 calculator
-  #    file-roller:        archive manager
-  #    libreoffice:        office suite
-  #    fastfetch:          system info on terminal open (branding)
-  #    just:               command runner (for ujust compatibility)
-  #    nodejs:             JavaScript runtime
-  #    git / git-lfs:      version control
-  #    jq:                 JSON processor (used by first-boot scripts)
-  #
-  #    NOTE: GNOME Circle apps (Mission Center, Gradio, Wike, Amberol, etc.)
-  #    have NO Fedora RPM, so they ship as Flatpaks via flatpak preinstall
-  #    (see step 8b) and appear right after first boot when network is up.
-  # =========================================================================
-  - type: rpm-ostree
-    install:
-      - nautilus
-      - blackbox-terminal
-      - firefox
-      - htop
-      - gnome-text-editor
-      - gnome-console
-      - gnome-calculator
-      - file-roller
-      - libreoffice
-      - fastfetch
-      - just
-      - nodejs
-      - git
-      - git-lfs
-      - jq
+# =========================================================================
+   # 7. MINIMAL APPLICATION SET — a usable, lean GTK4 base
+   #    Core apps (all available as Fedora RPMs so they work OFFLINE, baked
+   #    straight into /usr — no Flatpak, no first-boot download):
+   #    nautilus:           file manager
+   #    blackbox-terminal:  terminal emulator
+   #    firefox:            web browser
+   #    htop:               process monitor
+   #    gnome-text-editor:  GTK4 text editor
+   #    gnome-console:      GTK4 terminal (kgx)
+   #    gnome-calculator:   GTK4 calculator
+   #    file-roller:        archive manager
+   #    libreoffice:        office suite
+   #    fastfetch:          system info on terminal open (branding)
+   #    starship:           cross-shell prompt (pre-installed, no curl needed)
+   #    just:               command runner (for ujust compatibility)
+   #    nodejs:             JavaScript runtime
+   #    git / git-lfs:      version control
+   #    jq:                 JSON processor (used by first-boot scripts)
+   #
+   #    NOTE: GNOME Circle apps (Mission Center, Gradio, Wike, Amberol, etc.)
+   #    have NO Fedora RPM, so they ship as Flatpaks via flatpak preinstall
+   #    (see step 8b) and appear right after first boot when network is up.
+   # =========================================================================
+   - type: rpm-ostree
+     install:
+       - nautilus
+       - blackbox-terminal
+       - firefox
+       - htop
+       - gnome-text-editor
+       - gnome-console
+       - gnome-calculator
+       - file-roller
+       - libreoffice
+       - fastfetch
+       - starship
+       - just
+       - nodejs
+       - git
+       - git-lfs
+       - jq
 
   # =========================================================================
   # 8. CYBERSECURITY TOOLKIT — lean, defensive + network analysis
