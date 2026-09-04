@@ -156,7 +156,6 @@ modules:
       - file-roller
       - libreoffice
       - fastfetch
-      - starship
       - just
       - nodejs
       - git
