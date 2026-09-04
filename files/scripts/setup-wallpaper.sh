@@ -22,7 +22,7 @@ trap 'echo "[setup-wallpaper] FAILED at line $LINENO" >&2' ERR
 
 WALLPAPER_DIR=/usr/share/backgrounds/anubis-os
 XML_FILE=/usr/share/gnome-background-properties/anubis-os.xml
-DEFAULT_WALLPAPER="$WALLPAPER_DIR/anubis-wallpaper.png"
+DEFAULT_WALLPAPER="$WALLPAPER_DIR/fire-forest.jpg"
 
 echo "[setup-wallpaper] Setting up Anubis wallpaper collection..."
 
@@ -37,6 +37,8 @@ if [[ ! -f "$XML_FILE" ]]; then
 fi
 if [[ ! -f "$DEFAULT_WALLPAPER" ]]; then
     echo "ERROR: default wallpaper $DEFAULT_WALLPAPER not found." >&2
+    echo "Available wallpapers:"
+    find "$WALLPAPER_DIR" -maxdepth 1 -type f \( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.webp' \) | head -20
     exit 1
 fi
 

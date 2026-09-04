@@ -20,10 +20,10 @@ enabled-extensions=['dash-to-dock@micxgx.gmail.com', 'appindicatorsupport@rgcjon
 disable-user-extensions=false
 
 [org/gnome/desktop/background]
-picture-uri='file:///usr/share/backgrounds/anubis-os/anubis-wallpaper.png'
-picture-uri-dark='file:///usr/share/backgrounds/anubis-os/anubis-wallpaper.png'
+picture-uri='file:///usr/share/backgrounds/anubis-os/fire-forest.jpg'
+picture-uri-dark='file:///usr/share/backgrounds/anubis-os/fire-forest.jpg'
 picture-options='zoom'
 
 [org/gnome/desktop/screensaver]
-picture-uri='file:///usr/share/backgrounds/anubis-os/anubis-wallpaper.png'
+picture-uri='file:///usr/share/backgrounds/anubis-os/fire-forest.jpg'
 picture-options='zoom'
