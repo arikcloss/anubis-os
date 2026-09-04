@@ -4,7 +4,7 @@
 
 # anubis-os
 
-**O Fedora mais limpo possível. GNOME minimalista, kernel Fedora, e nada que você não precise.**
+**A clean Fedora. Minimal GNOME, Fedora kernel, nothing you don't need.**
 
 [![build](https://github.com/arikcloss/anubis-os/actions/workflows/build.yml/badge.svg)](https://github.com/arikcloss/anubis-os/actions/workflows/build.yml)
 [![iso](https://github.com/arikcloss/anubis-os/actions/workflows/iso.yml/badge.svg)](https://github.com/arikcloss/anubis-os/actions/workflows/iso.yml)
@@ -16,74 +16,70 @@
 
 ---
 
-## O que é isso?
+## What is this?
 
-O **anubis-os** é uma imagem OCI imutável construída sobre [Universal Blue](https://universal-blue.org/) — o mesmo projeto base do Bazzite, Bluefin e Aurora. A ideia é ser o **sistema mais limpo possível** da base Fedora: GNOME, sim, mas sem nenhum app desnecessário.
+anubis-os is an immutable OCI image built on [Universal Blue](https://universal-blue.org/) — the same base as Bazzite, Bluefin, and Aurora. The goal: the cleanest possible system from Fedora. GNOME, yes. But no bloat.
 
-### Filosofia
+### The philosophy
 
-- **Minimal**: uma base GTK4 usável (Nautilus, Blackbox, Firefox, Htop, editor/terminal/calculadora, File Roller, LibreOffice) + GNOME Circle via Flatpak + Brew e ferramentas de cibersegurança. Nada de Maps, Weather, Calendar, Music, Photos, Videos, etc.
-- **Performático**: kernel Fedora + tuned, irqbalance, zram — tudo pré-configurado para rodar bem em hardware antigo (1st-gen Intel Core), novo e modesto.
-- **Estável**: cada script é idempotente, tem `set -euo pipefail` + trap de erro, e loga cada passo. A imagem e a ISO compartilham a mesma recipe — zero drift entre o que você testa no container e o que boota do ISO.
-- **Harmonioso**: o build da imagem e o build da ISO são workflows separados mas encadeados. A ISO é gerada a partir da imagem já publicada, não da recipe diretamente.
+**Minimal.** A usable GTK4 base (Files, Terminal, Firefox, Htop, Editor, Calculator, Archive Manager, LibreOffice) + GNOME Circle apps via Flatpak + Homebrew and some security tools. No Maps, Weather, Calendar, Music, Photos, Videos, etc.
 
----
+**Performant.** Fedora kernel + tuned, irqbalance, zram — all preconfigured to run well on old hardware (1st-gen Intel Core), new hardware, and everything in between.
 
-## Hardware suportado
+**Stable.** Every script is idempotent, uses `set -euo pipefail` with error traps, and logs every step. The image and ISO share the same recipe — zero drift between what you test in a container and what boots from ISO.
 
-| Hardware | Como habilitar |
-|----------|----------------|
-| x86_64 genérico (1st-gen Intel Core → atual, todo AMD64) | Funciona out-of-the-box |
-| MacBook Air/Pro Intel 2013–2017 (Broadcom Wi-Fi) | `ujust install-broadcom-wifi` + reboot |
-| MacBook Air/Pro Intel 2013–2017 (FaceTime HD webcam) | `ujust install-facetimehd-webcam` + reboot |
-| Outros laptops com Broadcom 43xx | `ujust install-broadcom-wifi` + reboot |
+**Harmonious.** The image build and ISO build are separate but chained workflows. The ISO is generated from the already-published image, not from the recipe directly.
 
 ---
 
-## O que vem incluso
+## Supported hardware
 
-### Aplicativos GUI (base GTK4 usável, instalados via RPM → funcionam offline)
+| Hardware | How to enable |
+|----------|---------------|
+| Generic x86_64 (1st-gen Intel Core → current, all AMD64) | Works out of the box |
+| MacBook Air/Pro Intel 2013–2017 (Broadcom Wi-Fi) | `ujust install-broadcom-wifi` then reboot |
+| MacBook Air/Pro Intel 2013–2017 (FaceTime HD webcam) | `ujust install-facetimehd-webcam` then reboot |
+| Other laptops with Broadcom 43xx | `ujust install-broadcom-wifi` then reboot |
 
-| App | Função |
-|-----|--------|
-| **Nautilus** | Gerenciador de arquivos (GNOME Files) |
-| **Blackbox-terminal** | Terminal emulator |
-| **Firefox** | Navegador web |
-| **Htop** | Monitor de processos |
-| **GNOME Text Editor** | Editor de texto (GTK4) |
-| **GNOME Console** | Terminal do GNOME (kgx) |
-| **GNOME Calculator** | Calculadora |
-| **File Roller** | Gerenciador de arquivos compactados |
-| **LibreOffice** | Suíte de escritório |
+---
 
-Todos instalados como RPM no `/usr` — presentes de imediato, sem internet, no primeiro boot.
+## What's included
 
-### GNOME Circle / produtividade (Flatpak, instalados no primeiro boot)
+### GUI apps (base GTK4, installed via RPM — work offline)
 
-Estes apps não têm RPM no Fedora, então são gerenciados via `flatpak preinstall`
-(declarados em `/usr/share/flatpak/preinstall.d/`): **Mission Center**,
-**Gradio**, **Wike**, **Bazaar** (gerenciador de Flatpaks), **Amberol**,
-**Obsidian**, **VSCodium**, **Eyedropper (conta-gotas)**, **Fragments**,
-**Iotas**. Eles aparecem sozinhos logo após o primeiro boot, assim que a rede estiver disponível.
+These are baked into the system image. They're there on first boot, no internet needed.
 
-> **Nota técnica**: em imagem OSTree imutável, `/var/lib/flatpak` não é
-> commitado na imagem, então Flatpaks não podem ser 100% embutidos offline —
-> o service `anubis-flatpak-preinstall` instala automaticamente no primeiro
-> boot, sem passo manual. O que precisa estar instantâneo/offline fica no RPM.
+| App | What it does |
+|-----|--------------|
+| **Nautilus** | File manager (GNOME Files) |
+| **Blackbox Terminal** | Terminal emulator |
+| **Firefox** | Web browser |
+| **Htop** | Process monitor |
+| **GNOME Text Editor** | Text editor (GTK4) |
+| **GNOME Console** | GNOME's terminal (kgx) |
+| **GNOME Calculator** | Calculator |
+| **File Roller** | Archive manager |
+| **LibreOffice** | Office suite |
+
+### GNOME Circle / productivity (Flatpak, installed on first boot)
+
+These don't have RPMs in Fedora, so they're managed via `flatpak preinstall` (declared in `/usr/share/flatpak/preinstall.d/`): **Mission Center**, **Gradio**, **Wike**, **Bazaar** (Flatpak manager), **Amberol**, **Obsidian**, **VSCodium**, **Eyedropper**, **Fragments**, **Iotas**. They show up automatically after first boot once you have network.
+
+> **Technical note:** In an immutable OSTree image, `/var/lib/flatpak` isn't committed to the image, so Flatpaks can't be 100% embedded offline. The `anubis-flatpak-preinstall` service installs them automatically on first boot — no manual step needed. What needs to be instant/offline stays in RPM.
 
 ### Kernel & Performance
 
-| Componente | O que faz |
-|------------|-----------|
-| **Kernel Fedora** | Kernel estável do Fedora (sem patches de terceiros) |
-| **tuned + tuned-ppd** | Perfis adaptativos de performance/battery (integrado ao GNOME power settings) |
-| **irqbalance** | Distribui IRQs entre CPUs para menor latência |
-| **zram-generator** | Swap comprimido em RAM — o maior ganho de performance para hardware com 2-8 GB RAM |
-| **gamemode** | Otimização de CPU/governor sob demanda |
+| Component | What it does |
+|-----------|--------------|
+| **Fedora Kernel** | Stable Fedora kernel (no third-party patches) |
+| **tuned + tuned-ppd** | Adaptive performance/battery profiles (integrated into GNOME power settings) |
+| **irqbalance** | Distributes IRQs across CPUs for lower latency |
+| **zram-generator** | Compressed swap in RAM — biggest performance win for 2-8 GB systems |
+| **gamemode** | CPU/governor optimization on demand |
 
-### Ferramentas de Cibersegurança
+### Security tools
 
-Conjunto enxuto de ferramentas defensivas e de análise de rede, direto no RPM:
+A lean set of defensive and network analysis tools, direct in RPM:
 
 ```
 nmap  nmap-ncat  tcpdump  whois  traceroute  net-tools  bind-utils
@@ -91,43 +87,43 @@ firewalld  firejail  clamav  rkhunter  aide
 git  vim  curl  wget  python3  python3-pip
 ```
 
-Para ferramentas pesadas de pentesting (metasploit, hashcat, wireshark, hydra, sqlmap, etc.), use:
+For heavy pentesting tools (metasploit, hashcat, wireshark, hydra, sqlmap, etc.):
 
 ```bash
 ujust install-pentest-tools
 ```
 
-Isso cria um container Distrobox com o toolkit completo — a base imutável continua limpa.
+This creates a Distrobox container with the full toolkit — the immutable base stays clean.
 
 ### GNOME (minimal)
 
-GNOME Shell + Control Center + GDM, com 4 extensões ativas por padrão:
+GNOME Shell + Control Center + GDM, with 4 extensions enabled by default:
 
-- **Dash to Dock** — dock sempre visível
-- **AppIndicator** — ícones de bandeja para apps como Discord, Telegram
-- **Blur my Shell** — blur sutil no dash/overview (leve, GPU-friendly)
-- **Caffeine** — inibe o screensaver sob demanda
+- **Dash to Dock** — always-visible dock
+- **AppIndicator** — tray icons for Discord, Telegram, etc.
+- **Blur my Shell** — subtle blur on dash/overview (lightweight, GPU-friendly)
+- **Caffeine** — inhibit screensaver on demand
 
 ### Terminal & Shell
 
-- **Oh My Bash** — instalado no primeiro boot (via systemd service)
-- **Starship** — prompt customizado, instalado no primeiro boot
-- **fastfetch** — info do sistema ao abrir o terminal (com ASCII art do Anubis)
-- **Homebrew** — gerenciador de pacotes user-space que não toca no OSTree
+- **Oh My Bash** — installed on first boot (via systemd service)
+- **Starship** — custom prompt, installed on first boot
+- **fastfetch** — system info when you open terminal (with Anubis ASCII art)
+- **Homebrew** — user-space package manager that doesn't touch the OSTree
 
 ---
 
-## Instalação
+## Installation
 
-### Rebase a partir de qualquer sistema Universal Blue ou Silverblue
+### Rebase from any Universal Blue or Silverblue system
 
 ```bash
 rpm-ostree rebase ostree-unverified-registry:ghcr.io/arikcloss/anubis-os:latest
 ```
 
-Reinicie após o rebase. No próximo boot, o sistema roda o setup de primeiro uso (Oh My Bash, Starship, fastfetch config, wallpaper).
+Reboot after. On next boot, the system runs first-use setup (Oh My Bash, Starship, fastfetch config, wallpaper).
 
-### Hardware com Broadcom Wi-Fi (MacBook 2013-2017, alguns Dell/HP)
+### Broadcom Wi-Fi hardware (MacBook 2013-2017, some Dell/HP)
 
 ```bash
 ujust install-broadcom-wifi
@@ -141,13 +137,13 @@ ujust install-facetimehd-webcam
 systemctl reboot
 ```
 
-### Instalação via ISO
+### Install via ISO
 
-Baixe a ISO da [página de Actions](https://github.com/arikcloss/anubis-os/actions/workflows/iso.yml) (artifact `iso-anubis-os`), grave em um pendrive com `dd` ou Ventoy, e boot.
+Download the ISO from the [Actions page](https://github.com/arikcloss/anubis-os/actions/workflows/iso.yml) (artifact `iso-anubis-os`), flash to USB with `dd` or Ventoy, and boot.
 
-A ISO instala o exato mesmo ostree image que o `rebase` puxaria — zero drift.
+The ISO installs the exact same ostree image that `rebase` would pull — zero drift.
 
-### Verificar a assinatura da imagem
+### Verify image signature
 
 ```bash
 cosign verify ghcr.io/arikcloss/anubis-os \
@@ -157,143 +153,143 @@ cosign verify ghcr.io/arikcloss/anubis-os \
 
 ---
 
-## Estrutura do repositório
+## Repository structure
 
 ```
 anubis-os/
 ├── recipes/
-│   └── recipe.yml                 # imagem única (Fedora 44 + GNOME minimal)
+│   └── recipe.yml                 # single image (Fedora 44 + minimal GNOME)
 ├── files/
-│   ├── scripts/                   # scripts de build-time (executados pelo BlueBuild)
-│   │   ├── 00-debloat-gnome.sh    # remove apps padrão do GNOME (Calendar, Maps, etc.)
+│   ├── scripts/                   # build-time scripts (run by BlueBuild)
+│   │   ├── 00-debloat-gnome.sh    # removes default GNOME apps (Calendar, Maps, etc.)
 │   │   ├── setup-os-release.sh    # branding: /etc/os-release → "Anubis OS"
 │   │   ├── setup-hostname.sh      # hostname → "anubis"
-│   │   ├── setup-logo.sh          # substitui logos do Fedora pela logo Anubis
-│   │   ├── setup-plymouth.sh      # tema de boot splash + rebuild do initramfs
-│   │   ├── setup-wallpaper.sh     # remove wallpapers stock, instala coleção Anubis
-│   │   ├── enable-gnome-extensions-defaults.sh  # configura dconf profile + compila DB
-│   │   ├── setup-ohmybash.sh      # skeleton de .bashrc + first-boot script
-│   │   ├── set-permissions.sh     # garante permissões corretas em todos os arquivos
-│   │   └── enable-first-boot-units.sh  # habilita serviços de primeiro boot
-│   └── system/                    # arquivos estáticos copiados para / na imagem
+│   │   ├── setup-logo.sh          # replaces Fedora logos with Anubis logo
+│   │   ├── setup-plymouth.sh      # boot splash theme + initramfs rebuild
+│   │   ├── setup-wallpaper.sh     # removes stock wallpapers, installs Anubis collection
+│   │   ├── enable-gnome-extensions-defaults.sh  # dconf profile + compiles DB
+│   │   ├── setup-ohmybash.sh      # .bashrc skeleton + first-boot script
+│   │   ├── set-permissions.sh     # ensures correct permissions on all files
+│   │   └── enable-first-boot-units.sh  # enables first-boot services
+│   └── system/                    # static files copied to / in the image
 │       ├── etc/
-│       │   ├── dconf/db/local.d/  # defaults do GNOME (extensões, wallpaper, GDM logo)
-│       │   ├── sysctl.d/          # hardening do kernel
-│       │   ├── profile.d/         # alias do fastfetch
-│       │   ├── systemd/           # config do zram-generator
-│       │   └── tuned/             # perfil tuned ativo
+│       │   ├── dconf/db/local.d/  # GNOME defaults (extensions, wallpaper, GDM logo)
+│       │   ├── sysctl.d/          # kernel hardening
+│       │   ├── profile.d/         # fastfetch alias
+│       │   ├── systemd/           # zram-generator config
+│       │   └── tuned/             # active tuned profile
 │       └── usr/
-│           ├── lib/systemd/system/   # units de primeiro boot (5 serviços)
-│           ├── lib/anubis-os/        # scripts de primeiro boot
-│           ├── share/backgrounds/    # wallpapers Anubis
-│           ├── share/flatpak/preinstall.d/  # apps GNOME Circle (flatpak preinstall)
+│           ├── lib/systemd/system/   # first-boot units (5 services)
+│           ├── lib/anubis-os/        # first-boot scripts
+│           ├── share/backgrounds/    # Anubis wallpapers
+│           ├── share/flatpak/preinstall.d/  # GNOME Circle apps (flatpak preinstall)
 │           ├── share/fastfetch/      # config + ASCII art
 │           ├── share/pixmaps/        # logos
-│           ├── share/icons/          # ícones hicolor
-│           ├── share/ublue-os/just/  # comandos ujust customizados
-│           └── share/applications/   # .desktop do "Update System"
+│           ├── share/icons/          # hicolor icons
+│           ├── share/ublue-os/just/  # custom ujust commands
+│           └── share/applications/   # "Update System" .desktop
 ├── .github/workflows/
-│   ├── build.yml                 # build da imagem → GHCR
-│   └── iso.yml                   # gera ISO da imagem publicada
-├── cosign.pub                    # chave pública para verificação de assinatura
+│   ├── build.yml                 # builds image → GHCR
+│   └── iso.yml                   # generates ISO from published image
+├── cosign.pub                    # public key for signature verification
 └── README.md
 ```
 
 ---
 
-## Comandos ujust
+## ujust commands
 
-O anubis-os inclui comandos customizados via `ujust`:
+anubis-os includes custom commands via `ujust`:
 
 ```bash
 # Performance
-ujust detect-cpu                 # identifica CPU
-ujust set-tuned-profile          # troca perfil de performance
+ujust detect-cpu                 # identifies CPU
+ujust set-tuned-profile          # switches performance profile
 
-# Segurança
-ujust enable-hardened-profile    # hardening agressivo (mitigations, nosmt, etc.)
-ujust run-aide-check             # verifica integridade de arquivos
-ujust run-rootkit-scan           # scan de rootkits
-ujust install-pentest-tools      # toolkit pentesting em container Distrobox
+# Security
+ujust enable-hardened-profile    # aggressive hardening (mitigations, nosmt, etc.)
+ujust run-aide-check             # checks file integrity
+ujust run-rootkit-scan           # scans for rootkits
+ujust install-pentest-tools      # pentesting toolkit in Distrobox container
 
 # Desktop
-ujust reroll-wallpaper           # troca o wallpaper aleatoriamente
-ujust list-extensions            # lista extensões GNOME
+ujust reroll-wallpaper           # changes wallpaper randomly
+ujust list-extensions            # lists GNOME extensions
 
-# Gaming (opt-in — nada de gaming no base image)
-ujust setup-gaming               # instala Steam + ProtonUp-Qt + Heroic via Flatpak
+# Gaming (opt-in — nothing gaming in base image)
+ujust setup-gaming               # installs Steam + ProtonUp-Qt + Heroic via Flatpak
 
-# Sistema
-ujust update-all                 # atualiza tudo (rpm-ostree + flatpak + brew + fwupd)
-ujust cleanup-flatpaks           # remove runtimes não utilizados
-ujust roll-back                  # mostra deployments + como fazer rollback
-ujust show-system-info           # fastfetch
+# System
+ujust update-all                 # updates everything (rpm-ostree + flatpak + brew + fwupd)
+ujust cleanup-flatpaks           # removes unused runtimes
+ujust roll-back                  # shows deployments + how to rollback
+ujust show-system-info           # runs fastfetch
 ```
 
 ---
 
-## Build local
+## Local build
 
 ```bash
-# Instalar o BlueBuild CLI
+# Install BlueBuild CLI
 brew install blue-build/tap/bluebuild
-# ou
+# or
 cargo install blue-build
 
-# Build da imagem
+# Build the image
 bluebuild build recipes/recipe.yml
 
-# Gerar ISO da imagem já publicada
+# Generate ISO from published image
 bluebuild generate-iso --output-dir iso-out \
   image ghcr.io/arikcloss/anubis-os:44
 ```
 
 ---
 
-## Customização
+## Customization
 
-### Adicionar pacotes ao sistema base
+### Add packages to base system
 
-Edite `recipe.yml` e faça rebuild via GitHub Actions ou localmente.
+Edit `recipe.yml` and rebuild via GitHub Actions or locally.
 
-### Instalar algo pontualmente sem rebuild
+### Install something once without rebuild
 
 ```bash
-# Persistente no sistema base (use com moderação)
-rpm-ostree install <pacote>
+# Persistent in base system (use sparingly)
+rpm-ostree install <package>
 
-# Via Homebrew (sem sudo, não toca no OS)
-brew install <pacote>
+# Via Homebrew (no sudo, doesn't touch OS)
+brew install <package>
 
-# Via Flatpak (apps com sandbox)
+# Via Flatpak (sandboxed apps)
 flatpak install flathub <app-id>
 ```
 
 ---
 
-## Arquitetura de estabilidade
+## Stability architecture
 
-Cada script em `files/scripts/` segue estas regras:
+Every script in `files/scripts/` follows these rules:
 
-1. **`set -euo pipefail`** — falha em qualquer erro, variável não definida, ou pipe quebrado.
-2. **`trap '... ERR'`** — loga a linha exata onde o script falhou.
-3. **Idempotente** — seguro rodar em todo build. Usa `cp -n`, `grep -q || echo`, `|| true` para operações não-críticas.
-4. **Verificação de pré-requisitos** — checa se arquivos/diretórios existem antes de operar.
-5. **Logging** — cada passo printa o que está fazendo com prefixo `[nome-do-script]`.
-6. **Non-fatal warnings** — operações não-críticas falham com warning, não quebram o build.
+1. **`set -euo pipefail`** — fails on any error, undefined variable, or broken pipe.
+2. **`trap '... ERR'`** — logs the exact line where the script failed.
+3. **Idempotent** — safe to run on every build. Uses `cp -n`, `grep -q || echo`, `|| true` for non-critical operations.
+4. **Prerequisite checks** — verifies files/directories exist before operating.
+5. **Logging** — each step prints what it's doing with prefix `[script-name]`.
+6. **Non-fatal warnings** — non-critical operations fail with warning, don't break the build.
 
-O debloat do GNOME (`00-debloat-gnome.sh`) é especialmente robusto: filtra a apenas pacotes instalados e remove um por vez, então sobrevive a renames de pacotes entre versões do Fedora.
+The GNOME debloat (`00-debloat-gnome.sh`) is especially robust: it filters to only installed packages and removes them one by one, so it survives package renames between Fedora versions.
 
 ---
 
-## Contribuindo
+## Contributing
 
-Issues e PRs são bem-vindos. Se encontrou um Flatpak com ID errado, um script quebrando no build ou uma extensão com UUID desatualizado — abre uma issue.
+Issues and PRs welcome. Found a Flatpak with wrong ID, a script breaking the build, or an extension with outdated UUID — open an issue.
 
 ---
 
 <div align="center">
 
-Feito com [Universal Blue](https://universal-blue.org/) · Baseado em [Fedora Silverblue](https://silverblue.fedoraproject.org/)
+Made with [Universal Blue](https://universal-blue.org/) · Based on [Fedora Silverblue](https://silverblue.fedoraproject.org/)
 
 </div>
