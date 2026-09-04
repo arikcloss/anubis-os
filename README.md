@@ -2,7 +2,7 @@
 
 <img src="https://github.com/user-attachments/assets/14a4ad1b-5c09-4f65-b186-6b246e2f88e3" width="140" alt="anubis-os logo" />
 
-# anubis-os
+# AnubisOS
 
 **A clean Fedora. Minimal GNOME, Fedora kernel, nothing you don't need.**
 
