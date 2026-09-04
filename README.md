@@ -95,15 +95,6 @@ ujust install-pentest-tools
 
 This creates a Distrobox container with the full toolkit — the immutable base stays clean.
 
-### GNOME (minimal)
-
-GNOME Shell + Control Center + GDM, with 4 extensions enabled by default:
-
-- **Dash to Dock** — always-visible dock
-- **AppIndicator** — tray icons for Discord, Telegram, etc.
-- **Blur my Shell** — subtle blur on dash/overview (lightweight, GPU-friendly)
-- **Caffeine** — inhibit screensaver on demand
-
 ### Terminal & Shell
 
 - **Oh My Bash** — installed on first boot (via systemd service)
