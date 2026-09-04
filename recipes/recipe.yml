@@ -120,7 +120,7 @@ modules:
     scripts:
       - 00-debloat-gnome.sh
 
-# =========================================================================
+  # =========================================================================
   # 7. MINIMAL APPLICATION SET — a usable, lean GTK4 base
   #    Core apps (all available as Fedora RPMs so they work OFFLINE, baked
   #    straight into /usr — no Flatpak, no first-boot download):
@@ -145,23 +145,23 @@ modules:
   #    (see step 8b) and appear right after first boot when network is up.
   # =========================================================================
   - type: rpm-ostree
-     install:
-       - nautilus
-       - blackbox-terminal
-       - firefox
-       - htop
-       - gnome-text-editor
-       - gnome-console
-       - gnome-calculator
-       - file-roller
-       - libreoffice
-       - fastfetch
-       - starship
-       - just
-       - nodejs
-       - git
-       - git-lfs
-       - jq
+    install:
+      - nautilus
+      - blackbox-terminal
+      - firefox
+      - htop
+      - gnome-text-editor
+      - gnome-console
+      - gnome-calculator
+      - file-roller
+      - libreoffice
+      - fastfetch
+      - starship
+      - just
+      - nodejs
+      - git
+      - git-lfs
+      - jq
 
   # =========================================================================
   # 8. CYBERSECURITY TOOLKIT — lean, defensive + network analysis
@@ -229,11 +229,11 @@ modules:
   #     Enables Anaconda Web UI and Cockpit for remote/local administration.
   #     Accessible at https://localhost:9090 in the live ISO.
   #     Packages:
-  #     cockpit:           Main Cockpit web console
-  #     cockpit-storaged:  Storage management
-  #     cockpit-podman:    Container management
+  #     cockpit:            Main Cockpit web console
+  #     cockpit-storaged:   Storage management
+  #     cockpit-podman:     Container management
   #     cockpit-networkmanager: Network management
-  #     cockpit-system:    System logs, services, accounts
+  #     cockpit-system:     System logs, services, accounts
   # =========================================================================
   - type: rpm-ostree
     install:
@@ -259,14 +259,14 @@ modules:
   #    branding complexity, fragile UUIDs). Branding is handled by GDM logo,
   #    Plymouth theme, wallpaper, os-release, and fastfetch ASCII.
   # =========================================================================
-  #- type: gnome-extensions
-  #  install:
+  # - type: gnome-extensions
+  #   install:
   #     - Dash to Dock
-  #    - AppIndicator and KStatusNotifierItem Support
-  #    - Blur my Shell
-  #    - Caffeine
- #     - Logo Menu
- #     - PaperWM
+  #     - AppIndicator and KStatusNotifierItem Support
+  #     - Blur my Shell
+  #     - Caffeine
+  #     - Logo Menu
+  #     - PaperWM
 
   # =========================================================================
   # 10. FLATHUB — remote enabled
